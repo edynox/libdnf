@@ -28,7 +28,8 @@ SET (LIBHIF_SRCS
     hif-repo.c
     hif-state.c
     hif-transaction.c
-    hif-utils.c)
+    hif-utils.c
+    hif-swdb.c)
 
 configure_file ("hif-version.h.in"  ${CMAKE_CURRENT_SOURCE_DIR}/hif-version.h)
 configure_file ("libhif.pc.in" ${CMAKE_CURRENT_BINARY_DIR}/libhif.pc @ONLY)
@@ -57,7 +58,8 @@ TARGET_LINK_LIBRARIES(hth libhif
                       ${LIBSOLV_LIBRARY}
                       ${LIBSOLV_EXT_LIBRARY}
                       ${REPO_LIBRARIES}
-                      ${RPMDB_LIBRARY})
+                      ${RPMDB_LIBRARY}
+                      )
 
 SET(LIBHAWKEY_headers
     hy-goal.h
@@ -95,7 +97,9 @@ SET(LIBHIF_headers
     hif-types.h
     hif-utils.h
     hif-version.h
-    libhif.h)
+    hif-swdb.h
+    libhif.h
+    )
 
 # gir generation
 # taken from https://github.com/ufo-kit/libuca/blob/master/src/CMakeLists.txt
@@ -147,6 +151,7 @@ if (GOBJECT_INTROSPECTION_FOUND)
                     hif-repo.c hif-repo.h
                     hif-state.h hif-state.c
                     hif-version.h
+                    hif-swdb.h hif-swdb.c
             DEPENDS libhif
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
