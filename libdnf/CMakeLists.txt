@@ -29,7 +29,8 @@ SET (LIBDNF_SRCS
     dnf-solution.c
     dnf-state.c
     dnf-transaction.c
-    dnf-utils.c)
+    dnf-utils.c
+    dnf-swdb.c)
 
 configure_file ("dnf-version.h.in"  ${CMAKE_CURRENT_SOURCE_DIR}/dnf-version.h)
 configure_file ("libdnf.pc.in" ${CMAKE_CURRENT_BINARY_DIR}/libdnf.pc @ONLY)
@@ -62,7 +63,8 @@ TARGET_LINK_LIBRARIES(hth libdnf
                       ${LIBSOLV_LIBRARY}
                       ${LIBSOLV_EXT_LIBRARY}
                       ${REPO_LIBRARIES}
-                      ${RPMDB_LIBRARY})
+                      ${RPMDB_LIBRARY}
+                      )
 
 SET(LIBHAWKEY_headers
     hy-goal.h
@@ -101,7 +103,9 @@ SET(LIBDNF_headers
     dnf-types.h
     dnf-utils.h
     dnf-version.h
-    libdnf.h)
+    dnf-swdb.h
+    libdnf.h
+    )
 
 # gir generation
 # taken from https://github.com/ufo-kit/libuca/blob/master/src/CMakeLists.txt
@@ -154,6 +158,7 @@ if (GOBJECT_INTROSPECTION_FOUND)
                     dnf-repo.c dnf-repo.h
                     dnf-state.h dnf-state.c
                     dnf-version.h
+                    dnf-swdb.h dnf-swdb.c
             DEPENDS libdnf
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
