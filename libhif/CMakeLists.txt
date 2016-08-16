@@ -98,6 +98,7 @@ SET(LIBHIF_headers
     hif-utils.h
     hif-version.h
     hif-swdb.h
+    hif-swdb-sql.h
     libhif.h
     )
 
