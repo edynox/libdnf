@@ -99,6 +99,7 @@ SET(LIBHIF_headers
     hif-version.h
     hif-swdb.h
     hif-swdb-sql.h
+    hif-swdb-obj.h
     libhif.h
     )
 
@@ -152,7 +153,7 @@ if (GOBJECT_INTROSPECTION_FOUND)
                     hif-repo.c hif-repo.h
                     hif-state.h hif-state.c
                     hif-version.h
-                    hif-swdb.h hif-swdb.c
+                    hif-swdb.h hif-swdb.c hif-swdb-obj.h
             DEPENDS libhif
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
