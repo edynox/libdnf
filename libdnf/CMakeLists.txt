@@ -105,6 +105,7 @@ SET(LIBDNF_headers
     dnf-version.h
     dnf-swdb.h
     dnf-swdb-sql.h
+    dnf-swdb-obj.h
     libdnf.h
     )
 
@@ -159,7 +160,7 @@ if (GOBJECT_INTROSPECTION_FOUND)
                     dnf-repo.c dnf-repo.h
                     dnf-state.h dnf-state.c
                     dnf-version.h
-                    dnf-swdb.h dnf-swdb.c
+                    dnf-swdb.h dnf-swdb.c dnf-swdb-obj.h
             DEPENDS libdnf
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
