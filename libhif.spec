@@ -29,6 +29,7 @@ BuildRequires:  pkgconfig(gio-unix-2.0) >= 2.44.0
 BuildRequires:  pkgconfig(gtk-doc)
 BuildRequires:  pkgconfig(gobject-introspection-1.0)
 BuildRequires:  rpm-devel >= 4.11.0
+BuildRequires:  sqlite-devel
 
 Requires:       libsolv%{?_isa} >= %{libsolv_version}
 
