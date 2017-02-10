@@ -700,9 +700,6 @@ void _log_group_trans(sqlite3 *db, gint tid, GPtrArray *groups, gint is_installe
 
 }
 
-
-//FIXME!!!! TRANS_GROUP_DATA not connected with TRANS_DATA!!!
-// need to return TGID here
 /**
 * dnf_swdb_log_group_trans:
 * @installing: (element-type DnfSwdbGroup)(array)(transfer container): list of #DnfSwdbGroup
@@ -737,17 +734,29 @@ gboolean dnf_swdb_removable_pkg(DnfSwdb *self, const gchar* pkg_name)
     gboolean removable = TRUE;
     //check if package was installed with group
 
-    /* TODO
-    def _removable_pkg(self, pkg_name):
-    prst = self.persistor
-    count = 0
-    if self._reason_fn(pkg_name) != 'group':
-        return False
-    for id_ in prst.groups():
-        p_grp = prst.group(id_.name_id)
-        count += sum(1 for pkg in p_grp.get_full_list() if pkg == pkg_name)
-    return count < 2
-    */
+    sqlite3_stmt *res;
+    const gchar *sql = S_REM_REASON;
+    DB_PREP(self->db, sql, res);
+    DB_BIND(res, "@name", pkg_name);
+    gchar *reason = DB_FIND_STR(res);
+    if(g_strcmp0(reason, "group")) // null or != "group"
+    {
+        removable = FALSE;
+    }
+    else
+    {
+        sql = S_REM;
+        DB_PREP(self->db, sql, res);
+        DB_BIND(res, "@name", pkg_name);
+        gint count = 0;
+        while(sqlite3_step(res) == SQLITE_ROW && count < 2)
+        {
+            count++;
+        }
+        sqlite3_finalize(res);
+        removable = count < 2;
+    }
+    g_free(reason);
     dnf_swdb_close(self);
     return removable;
 }
