@@ -24,14 +24,14 @@
 #define LIBDNF_ITRANSACTIONFACTORY_HPP
 
 
-#include "itransaction.hpp"
+#include "readonlytransaction.hpp"
 
 class ITransactionFactory
 {
     ITransactionFactory() = default;
     virtual ~ITransactionFactory() = default;
 
-    virtual ITransaction *getTransaction() = 0;
+    virtual ReadOnlyTransaction *getTransaction() = 0;
 };
 
 

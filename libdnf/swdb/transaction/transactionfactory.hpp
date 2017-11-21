@@ -28,7 +28,7 @@
 
 class TransactionFactory : public ITransactionFactory
 {
-    ITransaction *getTransaction() override;
+    ReadOnlyTransaction *getTransaction() override;
 };
 
 

@@ -37,7 +37,7 @@ public:
 
     Item *getRpmItem(HyPackage *package) const;
     TransactionItem *createTransactionItem(Item *item, std::string &repoID, Reason reason, bool obsoleting);
-    ITransaction *createTransaction(long uid, std::string &cliCommand);
+    ReadOnlyTransaction *createTransaction(long uid, std::string &cliCommand);
     void add(Item *item);
 };
 };

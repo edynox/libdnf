@@ -35,11 +35,11 @@ public:
     SWDB(ITransactionFactory &transactionFactory);
     virtual ~SWDB() = default;
 
-    std::vector<ITransaction *> listTransactions();
-    std::vector<ITransaction *> listTransactions(std::vector<std::string> &pkgSpecs);
-    std::vector<ITransaction *> listTransactions(std::vector<long long> &transactionIDs);
-    ITransaction *getTransaction(long long transactionID);
-    ITransaction *getLastTransaction();
+    std::vector<ReadOnlyTransaction *> listTransactions();
+    std::vector<ReadOnlyTransaction *> listTransactions(std::vector<std::string> &pkgSpecs);
+    std::vector<ReadOnlyTransaction *> listTransactions(std::vector<long long> &transactionIDs);
+    ReadOnlyTransaction *getTransaction(long long transactionID);
+    ReadOnlyTransaction *getLastTransaction();
 
 private:
     ITransactionFactory *transactionFactory;
