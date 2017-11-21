@@ -25,10 +25,11 @@
 
 
 #include "item.hpp"
+#include "../types/reason.hpp"
 
 class TransactionItem
 {
-    TransactionItem(Item *item, Repo *repo, std::string reason, bool obsoleting);
+    TransactionItem(Item *item, Repo *repo, Reason reason, bool obsoleting);
 
     Item *getItem();
 };
