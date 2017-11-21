@@ -1,7 +1,7 @@
-/* handle.cpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -20,21 +20,28 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "handle.hpp"
+#ifndef LIBDNF_READONLYTRANSACTION_HPP
+#define LIBDNF_READONLYTRANSACTION_HPP
 
 
-Handle *Handle::handle = nullptr;
+#include "itransaction.hpp"
 
-Handle::~Handle()
+class ReadOnlyTransaction : public ITransaction
 {
-    delete handle;
-}
+    ReadOnlyTransaction() = default;
+    virtual ~ReadOnlyTransaction() = default;
 
-Handle *Handle::getInstance(const char *path)
-{
-    if (handle == nullptr) {
-        handle = new Handle(path);
-    }
+    virtual std::vector<TransactionItem *> listTransactionItems() const override;
+    virtual std::vector<std::string> listLogMessages(int fileDescriptor = -1) const override;
+    virtual std::string getSoftwarePerformedWith() const override;
 
-    return handle;
-}
+    virtual void addTransactionItem(TransactionItem *transactionItem) {};
+    virtual void setSoftwarePerformedWith(std::string &software) {};
+
+    virtual void begin(long long rpmDBVersion = -1) {};
+    virtual void logOutput(std::string *message, int fileDescriptor) {};
+    virtual void end(long long rpmDBVersion) {};
+};
+
+
+#endif //LIBDNF_READONLYTRANSACTION_HPP

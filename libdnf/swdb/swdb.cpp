@@ -1,7 +1,7 @@
-/* swdb.cpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -21,9 +21,3 @@
  */
 
 #include "swdb.hpp"
-
-Swdb::Swdb (const char *path, const char *releasever)
-{
-    handle = Handle (path);
-    release = releasever;
-}

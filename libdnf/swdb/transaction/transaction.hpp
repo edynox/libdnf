@@ -1,7 +1,7 @@
-/* trans.hpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -20,15 +20,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __TRANS_HPP
-#define __TRANS_HPP
+#ifndef LIBDNF_TRANSACTION_HPP
+#define LIBDNF_TRANSACTION_HPP
 
-class ReadOnlyTransaction
-{
-};
+#include <string>
+
+#include "../item/transactionitem.hpp"
+#include "readonlytransaction.hpp"
 
 class Transaction : public ReadOnlyTransaction
 {
+    void addTransactionItem(TransactionItem *transactionItem) override;
+    void setSoftwarePerformedWith(std::string &software) override;
+
+    void begin(long long rpmDBVersion = -1) override;
+    void logOutput(std::string *message, int fileDescriptor) override;
+    void end(long long rpmDBVersion) override;
 };
 
-#endif
+
+#endif //LIBDNF_TRANSACTION_HPP

@@ -1,7 +1,7 @@
-/* item.hpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -20,11 +20,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __ITEM_HPP
-#define __ITEM_HPP
+#ifndef LIBDNF_ITEM_HPP
+#define LIBDNF_ITEM_HPP
+
+
+#include <string>
 
 class Item
 {
+    Item() = default;
+    virtual ~Item() = default;
+
+    virtual void markInstalled(std::string reason);
+    virtual void markFinished();
 };
 
-#endif
+
+#endif //LIBDNF_ITEM_HPP

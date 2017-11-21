@@ -1,7 +1,7 @@
-/* handle.cpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -20,21 +20,25 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "handle.hpp"
+#ifndef LIBDNF_SWDBPRIVATE_HPP
+#define LIBDNF_SWDBPRIVATE_HPP
 
+#include "swdb.hpp"
 
-Handle *Handle::handle = nullptr;
+class HyPackage;
 
-Handle::~Handle()
+namespace privateAPI {
+
+class SWDB : public publicAPI::SWDB
 {
-    delete handle;
-}
+public:
+    SWDB(ITransactionFactory *transactionFactory);
 
-Handle *Handle::getInstance(const char *path)
-{
-    if (handle == nullptr) {
-        handle = new Handle(path);
-    }
+    Item *getRpmItem(HyPackage *package) const;
+    TransactionItem *createTransactionItem(Item *item, std::string &repoID, std::string &reason, bool obsoleting);
+    ITransaction *createTransaction(long uid, std::string &cliCommand);
+    void add(Item *item);
+};
+};
 
-    return handle;
-}
+#endif //LIBDNF_SWDBPRIVATE_HPP

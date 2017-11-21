@@ -1,7 +1,7 @@
-/* handle.cpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -20,21 +20,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "handle.hpp"
+#ifndef LIBDNF_TRANSACTIONFACTORY_HPP
+#define LIBDNF_TRANSACTIONFACTORY_HPP
 
 
-Handle *Handle::handle = nullptr;
+#include "itransactionfactory.hpp"
 
-Handle::~Handle()
+class TransactionFactory : public ITransactionFactory
 {
-    delete handle;
-}
+    ITransaction *getTransaction() override;
+};
 
-Handle *Handle::getInstance(const char *path)
-{
-    if (handle == nullptr) {
-        handle = new Handle(path);
-    }
 
-    return handle;
-}
+#endif //LIBDNF_TRANSACTIONFACTORY_HPP

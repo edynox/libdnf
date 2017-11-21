@@ -27,10 +27,15 @@
 
 class Handle
 {
-  public:
-    Handle (const char *path);
+public:
+    virtual ~Handle();
 
-  protected:
+    static Handle *getInstance(const char *path);
+
+private:
+    Handle(const char *path);
+
+    static Handle *handle;
     sqlite3 *db;
 };
 

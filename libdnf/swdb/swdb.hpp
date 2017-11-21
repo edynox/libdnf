@@ -1,7 +1,7 @@
-/* swdb.hpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -20,24 +20,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __SWDB_HPP
-#define __SWDB_HPP
+#ifndef LIBDNF_SWDB_HPP
+#define LIBDNF_SWDB_HPP
 
-#include "handle/handle.hpp"
 #include <string>
 
-class Swdb
-{
-  public:
-    Swdb (const char *path, const char *releasever);
+#include "transaction/itransactionfactory.hpp"
 
-  protected:
-    Handle handle;
-    std::string releasever;
+namespace publicAPI {
+
+class SWDB
+{
+public:
+    SWDB(ITransactionFactory &transactionFactory);
+    virtual ~SWDB() = default;
+
+    std::vector<ITransaction *> listTransactions();
+    std::vector<ITransaction *> listTransactions(std::vector<std::string> &pkgSpecs);
+    std::vector<ITransaction *> listTransactions(std::vector<long long> &transactionIDs);
+    ITransaction *getTransaction(long long transactionID);
+    ITransaction *getLastTransaction();
+
+private:
+    ITransactionFactory *transactionFactory;
+};
 };
 
-class PrivateSwdb : public Swdb
-{
-};
-
-#endif
+#endif //LIBDNF_SWDB_HPP

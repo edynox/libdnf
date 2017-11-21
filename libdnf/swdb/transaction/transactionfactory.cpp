@@ -1,7 +1,7 @@
-/* trans-item.hpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -20,11 +20,4 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __TRANS_ITEM_HPP
-#define __TRANS_ITEM_HPP
-
-class TransactionItem
-{
-};
-
-#endif
+#include "transactionfactory.hpp"

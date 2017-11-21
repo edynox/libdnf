@@ -1,7 +1,7 @@
-/* rpm-item.hpp
- *
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
+ *         Martin Hatina <mhatina@redhat.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -20,13 +20,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __RPM_ITEM_HPP
-#define __RPM_ITEM_HPP
+#ifndef LIBDNF_TRANSACTIONITEM_HPP
+#define LIBDNF_TRANSACTIONITEM_HPP
+
 
 #include "item.hpp"
 
-class RpmItem : public Item
+class TransactionItem
 {
+    TransactionItem(Item *item, Repo *repo, std::string reason, bool obsoleting);
+
+    Item *getItem();
 };
 
-#endif
+
+#endif //LIBDNF_TRANSACTIONITEM_HPP
