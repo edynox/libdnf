@@ -31,7 +31,9 @@ class ITransactionFactory
     ITransactionFactory() = default;
     virtual ~ITransactionFactory() = default;
 
-    virtual ReadOnlyTransaction *getTransaction() = 0;
+    virtual ReadOnlyTransaction *getTransaction(long long id, bool readOnly = true) = 0;
+    virtual ReadOnlyTransaction *createTransaction(long long uid, std::string &cliCommand, std::string &releasever,
+                                                   long long id, bool readOnly) = 0;
 };
 
 

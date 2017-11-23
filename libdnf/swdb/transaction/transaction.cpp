@@ -21,3 +21,14 @@
  */
 
 #include "Transaction.hpp"
+
+Transaction::Transaction(long long id, long long uid, std::string &cliCommand, std::string &releasever)
+    : ReadOnlyTransaction(id, uid, cliCommand, releasever)
+{}
+
+Transaction(long long id, long long uid, std::string &cliCommand, std::string &releasever,
+            long timeOfTransactionBegin, long timeOfTransactionEnd, long databaseVersionBegin,
+            long databaseVersionEnd, std::string &softwarePerformedWith)
+    : ReadOnlyTransaction(id, uid, cliCommand, releasever, timeOfTransactionBegin, timeOfTransactionEnd,
+                          databaseVersionBegin, databaseVersionEnd, softwarePerformedWith)
+{}

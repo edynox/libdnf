@@ -21,3 +21,39 @@
  */
 
 #include "transactionfactory.hpp"
+#include "transaction.hpp"
+
+ReadOnlyTransaction *TransactionFactory::getTransaction(long long id, bool readOnly = true)
+{
+    // TODO get data from db
+    long uid;
+    std::string cliCommand;
+    std::string releasever;
+    // ...
+
+    if (readOnly) {
+        return ReadOnlyTransaction(id, uid, cliCommand, releasever/*, ... */);
+    }
+
+    return Transaction(id, uid, cliCommand, releasever/*, ... */);
+}
+
+ReadOnlyTransaction *TransactionFactory::createTransaction(long long uid, std::string &cliCommand,
+                                                           std::string &releasever, long long id = -1,
+                                                           bool readOnly = true)
+{
+    if (id == -1)
+        id = getNextTransactionID();
+
+    if (readOnly) {
+        return ReadOnlyTransaction(id, uid, cliCommand, releasever);
+    }
+
+    return Transaction(id, uid, cliCommand, releasever);
+}
+
+long long TransactionFactory::getNextTransactionID()
+{
+    // TODO return id of next new transaction
+    return -1;
+}

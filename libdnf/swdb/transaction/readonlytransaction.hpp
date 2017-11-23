@@ -23,18 +23,37 @@
 #ifndef LIBDNF_READONLYTRANSACTION_HPP
 #define LIBDNF_READONLYTRANSACTION_HPP
 
+#include <string>
+#include <vector>
 
-class HyPackage;
+#include "../hy-package.h"
 
 class ReadOnlyTransaction
 {
-    ReadOnlyTransaction() = default;
+    ReadOnlyTransaction(long long id, long long uid, std::string &cliCommand, std::string &releasever);
+    ReadOnlyTransaction(long long id, long long uid, std::string &cliCommand, std::string &releasever,
+                        long timeOfTransactionBegin, long timeOfTransactionEnd, long databaseVersionBegin,
+                        long databaseVersionEnd, std::string &softwarePerformedWith);
     virtual ~ReadOnlyTransaction() = default;
 
     virtual std::vector<TransactionItem *> listTransactionItems() const;
     virtual std::vector<std::string> listLogMessages(int fileDescriptor = -1) const;
-    virtual std::string getSoftwarePerformedWith() const;
-    virtual TransactionItem *getTransactionItem(HyPackage *package) const;
+    virtual std::string getSoftwarePerformedWith() const { return softwarePerformedWith; }
+    virtual TransactionItem *getTransactionItem(DnfPackage *package) const;
+
+protected:
+    long long id;
+    long long uid;
+    std::string cliCommand;
+    std::string releasever;
+
+    long timeOfTransactionBegin;
+    long timeOfTransactionEnd;
+
+    long databaseVersionBegin;
+    long databaseVersionEnd;
+
+    std::string softwarePerformedWith;
 };
 
 

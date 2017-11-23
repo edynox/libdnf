@@ -23,12 +23,19 @@
 #ifndef LIBDNF_TRANSACTIONFACTORY_HPP
 #define LIBDNF_TRANSACTIONFACTORY_HPP
 
+#include <string>
 
 #include "itransactionfactory.hpp"
 
 class TransactionFactory : public ITransactionFactory
 {
-    ReadOnlyTransaction *getTransaction() override;
+public:
+    ReadOnlyTransaction *getTransaction(long long id, bool readOnly = true) override;
+    ReadOnlyTransaction *createTransaction(long long uid, std::string &cliCommand, std::string &releasever,
+                                           long long id = -1, bool readOnly = true) override;
+
+private:
+    long getNextTransactionID();
 };
 
 

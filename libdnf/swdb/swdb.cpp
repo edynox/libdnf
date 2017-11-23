@@ -21,3 +21,12 @@
  */
 
 #include "swdb.hpp"
+
+SWDB::SWDB(ITransactionFactory *transactionFactory)
+    : transactionFactory(transactionFactory)
+{}
+
+ReadOnlyTransaction *SWDB::getTransaction(long long transactionID)
+{
+    return transactionFactory->getTransaction(transactionID);
+}

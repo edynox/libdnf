@@ -30,6 +30,11 @@
 
 class Transaction : public ReadOnlyTransaction
 {
+    Transaction(long long id, long long uid, std::string &cliCommand, std::string &releasever);
+    Transaction(long long id, long long uid, std::string &cliCommand, std::string &releasever,
+                long timeOfTransactionBegin, long timeOfTransactionEnd, long databaseVersionBegin,
+                long databaseVersionEnd, std::string &softwarePerformedWith);
+
     void addTransactionItem(TransactionItem *transactionItem) override;
     void setSoftwarePerformedWith(std::string &software) override;
 

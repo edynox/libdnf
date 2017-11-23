@@ -24,6 +24,7 @@
 #define LIBDNF_SWDB_HPP
 
 #include <string>
+#include <vector>
 
 #include "transaction/itransactionfactory.hpp"
 
@@ -32,18 +33,19 @@ namespace publicAPI {
 class SWDB
 {
 public:
-    SWDB(ITransactionFactory &transactionFactory);
+    SWDB(ITransactionFactory *transactionFactory);
     virtual ~SWDB() = default;
 
     std::vector<ReadOnlyTransaction *> listTransactions();
     std::vector<ReadOnlyTransaction *> listTransactions(std::vector<std::string> &pkgSpecs);
     std::vector<ReadOnlyTransaction *> listTransactions(std::vector<long long> &transactionIDs);
-    ReadOnlyTransaction *getTransaction(long long transactionID);
+    virtual ReadOnlyTransaction *getTransaction(long long transactionID);
     ReadOnlyTransaction *getLastTransaction();
 
 private:
     ITransactionFactory *transactionFactory;
 };
-};
+
+}
 
 #endif //LIBDNF_SWDB_HPP
