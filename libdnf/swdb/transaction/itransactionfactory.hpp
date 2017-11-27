@@ -23,18 +23,19 @@
 #ifndef LIBDNF_ITRANSACTIONFACTORY_HPP
 #define LIBDNF_ITRANSACTIONFACTORY_HPP
 
-
 #include "readonlytransaction.hpp"
 
 class ITransactionFactory
 {
-    ITransactionFactory() = default;
-    virtual ~ITransactionFactory() = default;
+    ITransactionFactory () = default;
+    virtual ~ITransactionFactory () = default;
 
-    virtual ReadOnlyTransaction *getTransaction(long long id, bool readOnly = true) = 0;
-    virtual ReadOnlyTransaction *createTransaction(long long uid, std::string &cliCommand, std::string &releasever,
-                                                   long long id, bool readOnly) = 0;
+    virtual ReadOnlyTransaction *getTransaction (unsigned long id, bool readOnly = true) = 0;
+    virtual ReadOnlyTransaction *createTransaction (unsigned long uid,
+                                                    const std::string &cliCommand,
+                                                    const std::string &releasever,
+                                                    unsigned long id,
+                                                    bool readOnly) = 0;
 };
 
-
-#endif //LIBDNF_ITRANSACTIONFACTORY_HPP
+#endif // LIBDNF_ITRANSACTIONFACTORY_HPP

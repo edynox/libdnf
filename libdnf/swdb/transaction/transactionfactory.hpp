@@ -29,14 +29,16 @@
 
 class TransactionFactory : public ITransactionFactory
 {
-public:
-    ReadOnlyTransaction *getTransaction(long long id, bool readOnly = true) override;
-    ReadOnlyTransaction *createTransaction(long long uid, std::string &cliCommand, std::string &releasever,
-                                           long long id = -1, bool readOnly = true) override;
+  public:
+    ReadOnlyTransaction *getTransaction (unsigned long id, bool readOnly = true) override;
+    ReadOnlyTransaction *createTransaction (unsigned long uid,
+                                            const std::string &cliCommand,
+                                            const std::string &releasever,
+                                            unsigned long id = -1,
+                                            bool readOnly = true) override;
 
-private:
-    long getNextTransactionID();
+  private:
+    unsigned long getNextTransactionID ();
 };
 
-
-#endif //LIBDNF_TRANSACTIONFACTORY_HPP
+#endif // LIBDNF_TRANSACTIONFACTORY_HPP

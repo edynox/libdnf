@@ -22,13 +22,30 @@
 
 #include "Transaction.hpp"
 
-Transaction::Transaction(long long id, long long uid, std::string &cliCommand, std::string &releasever)
-    : ReadOnlyTransaction(id, uid, cliCommand, releasever)
-{}
+Transaction::Transaction (unsigned long id,
+                          unsigned long uid,
+                          const std::string &cliCommand,
+                          const std::string &releasever)
+  : ReadOnlyTransaction (id, uid, cliCommand, releasever)
+{
+}
 
-Transaction(long long id, long long uid, std::string &cliCommand, std::string &releasever,
-            long timeOfTransactionBegin, long timeOfTransactionEnd, long databaseVersionBegin,
-            long databaseVersionEnd, std::string &softwarePerformedWith)
-    : ReadOnlyTransaction(id, uid, cliCommand, releasever, timeOfTransactionBegin, timeOfTransactionEnd,
-                          databaseVersionBegin, databaseVersionEnd, softwarePerformedWith)
-{}
+Transaction (unsigned long id,
+             unsigned long uid,
+             const std::string &cliCommand,
+             const std::string &releasever,
+             unsigned long timeOfTransactionBegin,
+             unsigned long timeOfTransactionEnd,
+             const std::string &rpmDBVersionBegin,
+             const std::string &rpmDBVersionEnd)
+  : ReadOnlyTransaction (id,
+                         uid,
+                         cliCommand,
+                         releasever,
+                         timeOfTransactionBegin,
+                         timeOfTransactionEnd,
+                         rpmDBVersionBegin,
+                         rpmDBVersionEnd,
+                         softwarePerformedWith)
+{
+}

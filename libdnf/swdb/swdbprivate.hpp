@@ -23,27 +23,28 @@
 #ifndef LIBDNF_SWDBPRIVATE_HPP
 #define LIBDNF_SWDBPRIVATE_HPP
 
+#include "../hy-package.h"
 #include "swdb.hpp"
 #include "types/reason.hpp"
-#include "../hy-package.h"
 
 namespace privateAPI {
 
 class SWDB : public publicAPI::SWDB
 {
-public:
-    SWDB(ITransactionFactory *transactionFactory);
+  public:
+    SWDB (ITransactionFactory *transactionFactory);
 
-    ReadOnlyTransaction *getTransaction(long long transactionID) override;
+    ReadOnlyTransaction *getTransaction (unsigned long transactionID) override;
 
-    Item *getRpmItem(DnfPackage *package) const;
-    TransactionItem *createTransactionItem(Item *item, std::string &repoID, Reason reason, bool obsoleting);
-    ReadOnlyTransaction *createTransaction(long uid, std::string &cliCommand);
-    TransactionItem *getTransactionItem(Item *item);
-    void add(Item *item);
-
+    Item *getRpmItem (DnfPackage *package) const;
+    TransactionItem *createTransactionItem (Item *item,
+                                            std::string &repoID,
+                                            Reason reason,
+                                            bool obsoleting);
+    ReadOnlyTransaction *createTransaction (unsigned long uid, std::string &cliCommand);
+    TransactionItem *getTransactionItem (Item *item);
+    void add (Item *item);
 };
-
 }
 
-#endif //LIBDNF_SWDBPRIVATE_HPP
+#endif // LIBDNF_SWDBPRIVATE_HPP

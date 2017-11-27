@@ -25,23 +25,31 @@
 
 #include <string>
 
+#include "../item/rpmitem.hpp"
 #include "../item/transactionitem.hpp"
 #include "readonlytransaction.hpp"
 
 class Transaction : public ReadOnlyTransaction
 {
-    Transaction(long long id, long long uid, std::string &cliCommand, std::string &releasever);
-    Transaction(long long id, long long uid, std::string &cliCommand, std::string &releasever,
-                long timeOfTransactionBegin, long timeOfTransactionEnd, long databaseVersionBegin,
-                long databaseVersionEnd, std::string &softwarePerformedWith);
+    Transaction (unsigned long id,
+                 unsigned long uid,
+                 const std::string &cliCommand,
+                 const std::string &releasever);
+    Transaction (unsigned long id,
+                 unsigned long uid,
+                 const std::string &cliCommand,
+                 const std::string &releasever,
+                 unsigned long timeOfTransactionBegin,
+                 unsigned long timeOfTransactionEnd,
+                 const std::string &rpmDBVersionBegin,
+                 const std::string &rpmDBVersionEnd);
 
-    void addTransactionItem(TransactionItem *transactionItem) override;
-    void setSoftwarePerformedWith(std::string &software) override;
+    void addTransactionItem (TransactionItem *transactionItem) override;
+    void setSoftwarePerformedWith (std::vector<RPMItem>) override;
 
-    void begin(long long rpmDBVersion = -1) override;
-    void logOutput(std::string *message, int fileDescriptor) override;
-    void end(long long rpmDBVersion) override;
+    void begin (const std::string &rpmDBVersion) override;
+    void logOutput (std::string *message, int fileDescriptor) override;
+    void end (std::string &rpmDBVersion) override;
 };
 
-
-#endif //LIBDNF_TRANSACTION_HPP
+#endif // LIBDNF_TRANSACTION_HPP

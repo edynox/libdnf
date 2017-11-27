@@ -23,36 +23,41 @@
 #include "transactionfactory.hpp"
 #include "transaction.hpp"
 
-ReadOnlyTransaction *TransactionFactory::getTransaction(long long id, bool readOnly = true)
+ReadOnlyTransaction *
+TransactionFactory::getTransaction (unsigned long id, bool readOnly = true)
 {
     // TODO get data from db
-    long uid;
+    unsigned long uid;
     std::string cliCommand;
     std::string releasever;
     // ...
 
     if (readOnly) {
-        return ReadOnlyTransaction(id, uid, cliCommand, releasever/*, ... */);
+        return ReadOnlyTransaction (id, uid, cliCommand, releasever /*, ... */);
     }
 
-    return Transaction(id, uid, cliCommand, releasever/*, ... */);
+    return Transaction (id, uid, cliCommand, releasever /*, ... */);
 }
 
-ReadOnlyTransaction *TransactionFactory::createTransaction(long long uid, std::string &cliCommand,
-                                                           std::string &releasever, long long id = -1,
-                                                           bool readOnly = true)
+ReadOnlyTransaction *
+TransactionFactory::createTransaction (unsigned long uid,
+                                       const std::string &cliCommand,
+                                       const std::string &releasever,
+                                       unsigned long id = -1,
+                                       bool readOnly = true)
 {
     if (id == -1)
-        id = getNextTransactionID();
+        id = getNextTransactionID ();
 
     if (readOnly) {
-        return ReadOnlyTransaction(id, uid, cliCommand, releasever);
+        return ReadOnlyTransaction (id, uid, cliCommand, releasever);
     }
 
-    return Transaction(id, uid, cliCommand, releasever);
+    return Transaction (id, uid, cliCommand, releasever);
 }
 
-long long TransactionFactory::getNextTransactionID()
+unsigned long
+TransactionFactory::getNextTransactionID ()
 {
     // TODO return id of next new transaction
     return -1;

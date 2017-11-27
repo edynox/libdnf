@@ -22,11 +22,13 @@
 
 #include "swdbprivate.hpp"
 
-SWDB::SWDB(ITransactionFactory *transactionFactory)
-    : transactionFactory(transactionFactory)
-{}
-
-ReadOnlyTransaction *getTransaction(long long transactionID)
+SWDB::SWDB (ITransactionFactory *transactionFactory)
+  : transactionFactory (transactionFactory)
 {
-    return transactionFactory->getTransaction(transactionID, false);
+}
+
+ReadOnlyTransaction *
+getTransaction (unsigned long transactionID)
+{
+    return transactionFactory->getTransaction (transactionID, false);
 }

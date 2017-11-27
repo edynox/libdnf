@@ -27,34 +27,42 @@
 #include <vector>
 
 #include "../hy-package.h"
+#include "../item/rpmitem.hpp"
 
 class ReadOnlyTransaction
 {
-    ReadOnlyTransaction(long long id, long long uid, std::string &cliCommand, std::string &releasever);
-    ReadOnlyTransaction(long long id, long long uid, std::string &cliCommand, std::string &releasever,
-                        long timeOfTransactionBegin, long timeOfTransactionEnd, long databaseVersionBegin,
-                        long databaseVersionEnd, std::string &softwarePerformedWith);
-    virtual ~ReadOnlyTransaction() = default;
+    ReadOnlyTransaction (unsigned long id,
+                         unsigned long uid,
+                         const std::string &cliCommand,
+                         const std::string &releasever);
+    ReadOnlyTransaction (unsigned long id,
+                         unsigned long uid,
+                         const std::string &cliCommand,
+                         const std::string &releasever,
+                         unsigned long timeOfTransactionBegin,
+                         unsigned long timeOfTransactionEnd,
+                         const std::string &rpmDBVersionBegin,
+                         const std::string &rpmDBVersionEnd);
+    virtual ~ReadOnlyTransaction () = default;
 
-    virtual std::vector<TransactionItem *> listTransactionItems() const;
-    virtual std::vector<std::string> listLogMessages(int fileDescriptor = -1) const;
-    virtual std::string getSoftwarePerformedWith() const { return softwarePerformedWith; }
-    virtual TransactionItem *getTransactionItem(DnfPackage *package) const;
+    virtual std::vector<TransactionItem *> listTransactionItems () const;
+    virtual std::vector<std::string> listLogMessages (int fileDescriptor = -1) const;
+    virtual std::vector<RPMItem> getSoftwarePerformedWith () const { return softwarePerformedWith; }
+    virtual TransactionItem *getTransactionItem (DnfPackage *package) const;
 
-protected:
-    long long id;
-    long long uid;
+  protected:
+    unsigned long id;
+    unsigned long uid;
     std::string cliCommand;
     std::string releasever;
 
-    long timeOfTransactionBegin;
-    long timeOfTransactionEnd;
+    unsigned long timeOfTransactionBegin;
+    unsigned long timeOfTransactionEnd;
 
-    long databaseVersionBegin;
-    long databaseVersionEnd;
+    std::string rpmDBVersionBegin;
+    std::string rpmDBVersionEnd;
 
-    std::string softwarePerformedWith;
+    std::vector<RPMItem> softwarePerformedWith;
 };
 
-
-#endif //LIBDNF_READONLYTRANSACTION_HPP
+#endif // LIBDNF_READONLYTRANSACTION_HPP

@@ -22,25 +22,34 @@
 
 #include "readonlytransaction.hpp"
 
-ReadOnlyTransaction::ReadOnlyTransaction(long long id, long long uid, std::string &cliCommand, std::string &releasever)
-    : id(id)
-    , uid(uid)
-    , cliCommand(cliCommand)
-    , releasever(releasever)
-    , timeOfTransactionBegin(-1)
-    , timeOfTransactionEnd(-1)
-    , databaseVersionBegin(-1)
-    , databaseVersionEnd(-1)
-{}
+ReadOnlyTransaction::ReadOnlyTransaction (unsigned long id,
+                                          unsigned long uid,
+                                          const std::string &cliCommand,
+                                          const std::string &releasever)
+  : id (id)
+  , uid (uid)
+  , cliCommand (cliCommand)
+  , releasever (releasever)
+  , timeOfTransactionBegin (-1)
+  , timeOfTransactionEnd (-1)
+  , rpmDBVersionBegin (-1)
+  , rpmDBVersionEnd (-1)
+{
+}
 
-ReadOnlyTransaction::ReadOnlyTransaction(long long id, long long uid, std::string &cliCommand, std::string &releasever,
-                                         long timeOfTransactionBegin, long timeOfTransactionEnd,
-                                         long databaseVersionBegin, long databaseVersionEnd,
-                                         std::string &softwarePerformedWith)
-    : ReadOnlyTransaction(id, uid, cliCommand, releasever)
-    , timeOfTransactionBegin(timeOfTransactionBegin)
-    , timeOfTransactionEnd(timeOfTransactionEnd)
-    , databaseVersionBegin(databaseVersionBegin)
-    , databaseVersionEnd(databaseVersionEnd)
-    , softwarePerformedWith(softwarePerformedWith)
-{}
+ReadOnlyTransaction::ReadOnlyTransaction (unsigned long id,
+                                          unsigned long uid,
+                                          const std::string &cliCommand,
+                                          const std::string &releasever,
+                                          unsigned long timeOfTransactionBegin,
+                                          unsigned long timeOfTransactionEnd,
+                                          const std::string &rpmDBVersionBegin,
+                                          const std::string &rpmDBVersionEnd)
+  : ReadOnlyTransaction (id, uid, cliCommand, releasever)
+  , timeOfTransactionBegin (timeOfTransactionBegin)
+  , timeOfTransactionEnd (timeOfTransactionEnd)
+  , rpmDBVersionBegin (rpmDBVersionBegin)
+  , rpmDBVersionEnd (rpmDBVersionEnd)
+  , softwarePerformedWith (softwarePerformedWith)
+{
+}
