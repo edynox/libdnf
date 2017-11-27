@@ -1,4 +1,4 @@
-/* handle.hpp
+/* statement.cpp
  *
  * Copyright (C) 2017 Red Hat, Inc.
  * Author: Eduard Cuba <ecuba@redhat.com>
@@ -20,51 +20,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef __HANDLE_HPP
-#define __HANDLE_HPP
-
 #include "statement.hpp"
-#include <sqlite3.h>
-#include <string>
 
-class Handle
+Statement::Statement ()
+  : res (res)
 {
-  public:
-    virtual ~Handle ();
+}
 
-    static Handle *getInstance (const char *path);
-
-    void createDB ();
-    void resetDB ();
-
-    bool exists ();
-
-    template<typename... Types, class... Ts>
-    Statement<Types> prepare (const char *sql, Ts... args)
-    {
-        open ();
-        sqlite3_stmt *res;
-        if (sqlite3_prepare_v2 (db, sql, -1, res, nullptr) != SQLITE_OK) {
-            // TODO handle error
-        }
-
-        Statement<Types> statement (res);
-        int pos = 0;
-        statement.bind (pos++, args);
-
-        return statement;
-    }
-
-  protected:
-    Handle (const char *path);
-
-    void open ();
-    void close ();
-
-    const char *path;
-
-    static Handle *handle;
-    sqlite3 *db;
+void
+Statement::exec ()
+{
+    // TODO handle error
+    sqlite3_step (res);
 };
 
-#endif
+void
+Statement::bind (const int pos, const std::string &val)
+{
+    // TODO handle error
+    sqlite3_bind_text (res, pos, val.c_str (), -1, SQLITE_STATIC);
+}
+
+void
+Statement::bind (const int pos, const int val)
+{
+    // TODO handle error
+    sqlite3_bind_int (res, pos, val);
+}
