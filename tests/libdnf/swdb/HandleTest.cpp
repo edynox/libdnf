@@ -19,5 +19,5 @@ HandleTest::tearDown ()
 void
 HandleTest::testPath ()
 {
-    CPPUNIT_ASSERT_EQUAL (handle.getPath (), path);
+    CPPUNIT_ASSERT_EQUAL (handle->getPath (), path);
 }

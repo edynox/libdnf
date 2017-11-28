@@ -30,7 +30,7 @@
 class Handle
 {
   public:
-    virtual ~Handle ();
+    ~Handle ();
 
     static Handle *getInstance (const char *dbPath);
 
