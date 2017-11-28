@@ -23,16 +23,15 @@
 #ifndef LIBDNF_TRANSACTIONITEM_HPP
 #define LIBDNF_TRANSACTIONITEM_HPP
 
-
-#include "item.hpp"
 #include "../types/reason.hpp"
+#include "item.hpp"
+#include <string>
 
 class TransactionItem
 {
-    TransactionItem(Item *item, Repo *repo, Reason reason, bool obsoleting);
+    TransactionItem (Item *item, const std::string &repo, Reason reason, bool obsoleting);
 
-    Item *getItem();
+    Item *getItem ();
 };
 
-
-#endif //LIBDNF_TRANSACTIONITEM_HPP
+#endif // LIBDNF_TRANSACTIONITEM_HPP

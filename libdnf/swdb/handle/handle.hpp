@@ -32,7 +32,7 @@ class Handle
   public:
     virtual ~Handle ();
 
-    static Handle *getInstance (const char *path);
+    static Handle *getInstance (const char *dbPath);
 
     void createDB ();
     void resetDB ();
@@ -40,23 +40,26 @@ class Handle
     bool exists ();
 
     template<typename... Types, class... Ts>
-    Statement<Types> prepare (const char *sql, Ts... args)
+    Statement<Types...> prepare (const char *sql, Ts... args)
     {
         open ();
         sqlite3_stmt *res;
-        if (sqlite3_prepare_v2 (db, sql, -1, res, nullptr) != SQLITE_OK) {
+        if (sqlite3_prepare_v2 (db, sql, -1, &res, nullptr) != SQLITE_OK) {
             // TODO handle error
         }
 
-        Statement<Types> statement (res);
+        Statement<Types...> statement (res);
+
         int pos = 0;
-        statement.bind (pos++, args);
+
+        // call bind for each parameter in parameter pack (left to right)
+        [](...) {}((statement.bind (pos++, std::forward<Ts> (args)), 0)...);
 
         return statement;
     }
 
   protected:
-    Handle (const char *path);
+    Handle (const char *dbPath);
 
     void open ();
     void close ();

@@ -28,9 +28,11 @@
 
 #include "../hy-package.h"
 #include "../item/rpmitem.hpp"
+#include "../item/transactionitem.hpp"
 
 class ReadOnlyTransaction
 {
+  public:
     ReadOnlyTransaction (unsigned long id,
                          unsigned long uid,
                          const std::string &cliCommand,

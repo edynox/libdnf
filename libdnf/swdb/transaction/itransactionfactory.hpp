@@ -27,6 +27,7 @@
 
 class ITransactionFactory
 {
+  public:
     ITransactionFactory () = default;
     virtual ~ITransactionFactory () = default;
 

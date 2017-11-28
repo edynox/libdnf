@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "Transaction.hpp"
+#include "transaction.hpp"
 
 Transaction::Transaction (unsigned long id,
                           unsigned long uid,
@@ -30,14 +30,14 @@ Transaction::Transaction (unsigned long id,
 {
 }
 
-Transaction (unsigned long id,
-             unsigned long uid,
-             const std::string &cliCommand,
-             const std::string &releasever,
-             unsigned long timeOfTransactionBegin,
-             unsigned long timeOfTransactionEnd,
-             const std::string &rpmDBVersionBegin,
-             const std::string &rpmDBVersionEnd)
+Transaction::Transaction (unsigned long id,
+                          unsigned long uid,
+                          const std::string &cliCommand,
+                          const std::string &releasever,
+                          unsigned long timeOfTransactionBegin,
+                          unsigned long timeOfTransactionEnd,
+                          const std::string &rpmDBVersionBegin,
+                          const std::string &rpmDBVersionEnd)
   : ReadOnlyTransaction (id,
                          uid,
                          cliCommand,
@@ -45,7 +45,28 @@ Transaction (unsigned long id,
                          timeOfTransactionBegin,
                          timeOfTransactionEnd,
                          rpmDBVersionBegin,
-                         rpmDBVersionEnd,
-                         softwarePerformedWith)
+                         rpmDBVersionEnd)
+{
+}
+
+void
+Transaction::addTransactionItem (TransactionItem *transactionItem)
+{
+}
+
+void Transaction::setSoftwarePerformedWith (std::vector<RPMItem>)
+{
+}
+
+void
+Transaction::begin (const std::string &rpmDBVersion)
+{
+}
+void
+Transaction::logOutput (std::string *message, int fileDescriptor)
+{
+}
+void
+Transaction::end (std::string &rpmDBVersion)
 {
 }

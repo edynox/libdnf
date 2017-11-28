@@ -32,8 +32,8 @@ ReadOnlyTransaction::ReadOnlyTransaction (unsigned long id,
   , releasever (releasever)
   , timeOfTransactionBegin (-1)
   , timeOfTransactionEnd (-1)
-  , rpmDBVersionBegin (-1)
-  , rpmDBVersionEnd (-1)
+  , rpmDBVersionBegin ()
+  , rpmDBVersionEnd ()
 {
 }
 
@@ -45,11 +45,13 @@ ReadOnlyTransaction::ReadOnlyTransaction (unsigned long id,
                                           unsigned long timeOfTransactionEnd,
                                           const std::string &rpmDBVersionBegin,
                                           const std::string &rpmDBVersionEnd)
-  : ReadOnlyTransaction (id, uid, cliCommand, releasever)
+  : id (id)
+  , uid (uid)
+  , cliCommand (cliCommand)
+  , releasever (releasever)
   , timeOfTransactionBegin (timeOfTransactionBegin)
   , timeOfTransactionEnd (timeOfTransactionEnd)
   , rpmDBVersionBegin (rpmDBVersionBegin)
   , rpmDBVersionEnd (rpmDBVersionEnd)
-  , softwarePerformedWith (softwarePerformedWith)
 {
 }

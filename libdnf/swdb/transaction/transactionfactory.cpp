@@ -33,10 +33,10 @@ TransactionFactory::getTransaction (unsigned long id, bool readOnly = true)
     // ...
 
     if (readOnly) {
-        return ReadOnlyTransaction (id, uid, cliCommand, releasever /*, ... */);
+        return new ReadOnlyTransaction (id, uid, cliCommand, releasever /*, ... */);
     }
 
-    return Transaction (id, uid, cliCommand, releasever /*, ... */);
+    return new Transaction (id, uid, cliCommand, releasever /*, ... */);
 }
 
 ReadOnlyTransaction *
@@ -50,10 +50,10 @@ TransactionFactory::createTransaction (unsigned long uid,
         id = getNextTransactionID ();
 
     if (readOnly) {
-        return ReadOnlyTransaction (id, uid, cliCommand, releasever);
+        return new ReadOnlyTransaction (id, uid, cliCommand, releasever);
     }
 
-    return Transaction (id, uid, cliCommand, releasever);
+    return new Transaction (id, uid, cliCommand, releasever);
 }
 
 unsigned long

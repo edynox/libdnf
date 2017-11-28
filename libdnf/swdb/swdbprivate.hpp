@@ -32,7 +32,7 @@ namespace privateAPI {
 class SWDB : public publicAPI::SWDB
 {
   public:
-    SWDB (ITransactionFactory *transactionFactory);
+    SWDB (ITransactionFactory *transFactory);
 
     ReadOnlyTransaction *getTransaction (unsigned long transactionID) override;
 

@@ -22,8 +22,10 @@
 
 #include "swdb.hpp"
 
-SWDB::SWDB (ITransactionFactory *transactionFactory)
-  : transactionFactory (transactionFactory)
+using namespace publicAPI;
+
+SWDB::SWDB (ITransactionFactory *transFactory)
+  : transactionFactory (transFactory)
 {
 }
 

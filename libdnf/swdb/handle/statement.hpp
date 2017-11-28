@@ -23,7 +23,6 @@
 #ifndef LIBDNF_SWDB_STATEMENT_HPP
 #define LIBDNF_SWDB_STATEMENT_HPP
 
-#include "sqlarg.h"
 #include <sqlite3.h>
 #include <string>
 
@@ -36,13 +35,28 @@ template<typename... Types>
 class Statement
 {
   public:
-    Statement (sqlite3_stmt *res);
+    Statement (sqlite3_stmt *sqlRes)
+      : res (sqlRes)
+    {
+    }
 
-    Row<Types> next ();
-    void exec ();
+    Row<Types...> next ();
+    void exec ()
+    {
+        // TODO handle error
+        sqlite3_step (res);
+    }
 
-    void bind (const int pos, const std::string &val);
-    void bind (const int pos, const int val);
+    void bind (const int pos, const std::string &val)
+    {
+        // TODO handle error
+        sqlite3_bind_text (res, pos, val.c_str (), -1, SQLITE_STATIC);
+    }
+    void bind (const int pos, const int val)
+    {
+        // TODO handle error
+        sqlite3_bind_int (res, pos, val);
+    }
 
   protected:
     const sqlite3_stmt *res;

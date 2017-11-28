@@ -33,17 +33,17 @@ Handle::~Handle ()
 }
 
 Handle *
-Handle::getInstance (const char *path)
+Handle::getInstance (const char *dbPath)
 {
     if (handle == nullptr) {
-        handle = new Handle (path);
+        handle = new Handle (dbPath);
     }
 
     return handle;
 }
 
-Handle::Handle (const char *path)
-  : path (path)
+Handle::Handle (const char *dbPath)
+  : path (dbPath)
 {
     db = nullptr;
 }
@@ -51,7 +51,8 @@ Handle::Handle (const char *path)
 void
 Handle::createDB ()
 {
-    prepare<> (CREATE_TABLES).exec ();
+    Statement<> statement = prepare<> (sql_create_tables);
+    statement.exec ();
 }
 
 void

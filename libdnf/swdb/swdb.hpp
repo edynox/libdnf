@@ -33,7 +33,7 @@ namespace publicAPI {
 class SWDB
 {
   public:
-    SWDB (ITransactionFactory *transactionFactory);
+    SWDB (ITransactionFactory *transFactory);
     virtual ~SWDB () = default;
 
     std::vector<ReadOnlyTransaction *> listTransactions ();
@@ -43,7 +43,7 @@ class SWDB
     virtual ReadOnlyTransaction *getTransaction (unsigned long transactionID);
     ReadOnlyTransaction *getLastTransaction ();
 
-  private:
+  protected:
     ITransactionFactory *transactionFactory;
 };
 }

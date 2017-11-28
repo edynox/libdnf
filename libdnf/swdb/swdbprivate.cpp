@@ -22,13 +22,15 @@
 
 #include "swdbprivate.hpp"
 
-SWDB::SWDB (ITransactionFactory *transactionFactory)
-  : transactionFactory (transactionFactory)
+using namespace privateAPI;
+
+SWDB::SWDB (ITransactionFactory *transFactory)
+  : publicAPI::SWDB::SWDB (transFactory)
 {
 }
 
 ReadOnlyTransaction *
-getTransaction (unsigned long transactionID)
+SWDB::getTransaction (unsigned long transactionID)
 {
     return transactionFactory->getTransaction (transactionID, false);
 }

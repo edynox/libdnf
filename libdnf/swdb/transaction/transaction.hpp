@@ -31,6 +31,7 @@
 
 class Transaction : public ReadOnlyTransaction
 {
+  public:
     Transaction (unsigned long id,
                  unsigned long uid,
                  const std::string &cliCommand,
@@ -44,12 +45,12 @@ class Transaction : public ReadOnlyTransaction
                  const std::string &rpmDBVersionBegin,
                  const std::string &rpmDBVersionEnd);
 
-    void addTransactionItem (TransactionItem *transactionItem) override;
-    void setSoftwarePerformedWith (std::vector<RPMItem>) override;
+    void addTransactionItem (TransactionItem *transactionItem);
+    void setSoftwarePerformedWith (std::vector<RPMItem>);
 
-    void begin (const std::string &rpmDBVersion) override;
-    void logOutput (std::string *message, int fileDescriptor) override;
-    void end (std::string &rpmDBVersion) override;
+    void begin (const std::string &rpmDBVersion);
+    void logOutput (std::string *message, int fileDescriptor);
+    void end (std::string &rpmDBVersion);
 };
 
 #endif // LIBDNF_TRANSACTION_HPP
