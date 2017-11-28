@@ -22,6 +22,7 @@
 
 #include "handle.hpp"
 #include "handle-sql.hpp"
+#include <cstdio>
 #include <unistd.h>
 
 Handle *Handle::handle = nullptr;
@@ -51,6 +52,7 @@ Handle::Handle (const char *dbPath)
 void
 Handle::createDB ()
 {
+    open ();
     Statement<> statement = prepare<> (sql_create_tables);
     statement.exec ();
 }
@@ -58,6 +60,9 @@ Handle::createDB ()
 void
 Handle::resetDB ()
 {
+    close ();
+    remove (dbPath);
+    createDB ();
 }
 
 bool
