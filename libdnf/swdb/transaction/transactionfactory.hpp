@@ -30,12 +30,12 @@
 class TransactionFactory : public ITransactionFactory
 {
   public:
-    ReadOnlyTransaction *getTransaction (unsigned long id, bool readOnly = true) override;
+    ReadOnlyTransaction *getTransaction (unsigned long id, bool readOnly) override;
     ReadOnlyTransaction *createTransaction (unsigned long uid,
                                             const std::string &cliCommand,
                                             const std::string &releasever,
-                                            unsigned long id = -1,
-                                            bool readOnly = true) override;
+                                            unsigned long id,
+                                            bool readOnly) override;
 
   private:
     unsigned long getNextTransactionID ();

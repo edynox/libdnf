@@ -59,7 +59,7 @@ class Statement
     }
 
   protected:
-    const sqlite3_stmt *res;
+    sqlite3_stmt *res;
 };
 
 #endif

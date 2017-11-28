@@ -24,7 +24,7 @@
 #include "transaction.hpp"
 
 ReadOnlyTransaction *
-TransactionFactory::getTransaction (unsigned long id, bool readOnly = true)
+TransactionFactory::getTransaction (unsigned long id, bool readOnly)
 {
     // TODO get data from db
     unsigned long uid;
@@ -43,10 +43,10 @@ ReadOnlyTransaction *
 TransactionFactory::createTransaction (unsigned long uid,
                                        const std::string &cliCommand,
                                        const std::string &releasever,
-                                       unsigned long id = -1,
-                                       bool readOnly = true)
+                                       unsigned long id,
+                                       bool readOnly)
 {
-    if (id == -1)
+    if (id == 0)
         id = getNextTransactionID ();
 
     if (readOnly) {
