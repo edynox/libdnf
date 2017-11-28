@@ -61,7 +61,7 @@ void
 Handle::resetDB ()
 {
     close ();
-    remove (dbPath);
+    remove (path);
     createDB ();
 }
 

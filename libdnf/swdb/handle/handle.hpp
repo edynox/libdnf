@@ -39,6 +39,18 @@ class Handle
 
     bool exists ();
 
+    /**
+     * template function should be used in following way:
+     *
+     * Statement<Int, String> s = prepare<Int, String>("SELECT id, name FROM foo WHERE id=?", 1);
+     *
+     * const Row<Int, String> &row = s.next();
+     * if (!row.empty()) {
+     *     int id = row.E1;
+     *     string name = row.E2;
+     * }
+     *
+     **/
     template<typename... Types, class... Ts>
     Statement<Types...> prepare (const char *sql, Ts... args)
     {
@@ -50,7 +62,8 @@ class Handle
 
         Statement<Types...> statement (res);
 
-        int pos = 0;
+        // placeholders are indexed from 1
+        int pos = 1;
 
         // call bind for each parameter in parameter pack (left to right)
         [](...) {}((statement.bind (pos++, std::forward<Ts> (args)), 0)...);

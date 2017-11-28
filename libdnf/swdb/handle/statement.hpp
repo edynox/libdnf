@@ -27,8 +27,10 @@
 #include <string>
 
 template<typename... Types>
-class Row
+struct Row
 {
+    // access attributes as E1, E2, E3...
+    bool empty ();
 };
 
 template<typename... Types>
