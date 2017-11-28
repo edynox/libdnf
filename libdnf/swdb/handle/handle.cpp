@@ -95,3 +95,9 @@ Handle::close ()
     }
     db = nullptr;
 }
+
+const char *
+Handle::getPath ()
+{
+    return path;
+}

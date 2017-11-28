@@ -71,6 +71,8 @@ class Handle
         return statement;
     }
 
+    const char *getPath ();
+
   protected:
     Handle (const char *dbPath);
 
