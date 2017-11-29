@@ -82,6 +82,8 @@ class Handle
     void bind (const int pos, const std::string &val);
     void bind (const int pos, const int val);
 
+    int64_t lastInsertRowID ();
+
   protected:
     void open ();
     void close ();

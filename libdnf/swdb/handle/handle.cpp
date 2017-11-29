@@ -170,3 +170,10 @@ Handle::bind (const int pos, const int val)
         throw SQLError ("Integer bind failed", sqlite3_db_handle (res));
     }
 }
+
+int64_t
+lastInsertRowID ()
+{
+    open ();
+    return sqlite3_last_insert_rowid (db);
+}
