@@ -36,15 +36,17 @@ R"***(
         done INTEGER NOT NULL,
         obsoleting INTEGER NOT NULL,
         reason INTEGER NOT NULL,
-        state INTEGER REFERENCES item_state(id)
+        state INTEGER REFERENCES item_state(id),
+        CONSTRAINT trans_item_unique_trans_item UNIQUE (trans_id, item_id)
     );
     CREATE TABLE trans_with (
         id INTEGER PRIMARY KEY,
         trans_id INTEGER REFERENCES trans(id),
         item_id INTEGER REFERENCES item(id)
+        CONSTRAINT trans_with_unique_trans_item UNIQUE (trans_id, item_id)
     );
     CREATE TABLE rpm (
-        item_id INTEGER UNIQUE,
+        item_id INTEGER UNIQUE NOT NULL,
         name TEXT NOT NULL,
         epoch INTEGER NOT NULL,
         version TEXT NOT NULL,
@@ -52,13 +54,14 @@ R"***(
         arch TEXT NOT NULL,
         checksum_type TEXT NOT NULL,
         checksum_data TEXT NOT NULL,
-        FOREIGN KEY(item_id) REFERENCES item(id)
+        FOREIGN KEY(item_id) REFERENCES item(id),
+        CONSTRAINT rpm_unique_nevra UNIQUE (name, epoch, version, release, arch)
     );
     CREATE INDEX rpm_name ON rpm(name);
     CREATE INDEX trans_item_item_id ON trans_item(item_id);
 
     CREATE TABLE config (
-        key TEXT PRIMERY KEY,
+        key TEXT PRIMARY KEY,
         value TEXT NOT NULL
     );
     INSERT INTO config VALUES (
