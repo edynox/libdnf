@@ -132,9 +132,10 @@ std::string
 Handle::getString (int pos)
 {
     if (res == nullptr) {
-        return std::string ();
+        return "";
     }
-    return reinterpret_cast<const char *> (sqlite3_column_text (res, pos));
+    auto result = reinterpret_cast<const char *> (sqlite3_column_text (res, pos));
+    return result ? result : "";
 }
 
 bool
@@ -143,8 +144,11 @@ Handle::step ()
     if (res == nullptr) {
         return false;
     }
-    bool nextRow = sqlite3_step (res) == SQLITE_ROW;
-    return nextRow;
+    int result = sqlite3_step (res);
+    if (result == SQLITE_OK || result == SQLITE_ROW || result == SQLITE_DONE) {
+        return result == SQLITE_ROW;
+    }
+    throw SQLError ("Step failed", db);
 }
 
 void
@@ -172,7 +176,7 @@ Handle::bind (const int pos, const int val)
 }
 
 int64_t
-lastInsertRowID ()
+Handle::lastInsertRowID ()
 {
     open ();
     return sqlite3_last_insert_rowid (db);
