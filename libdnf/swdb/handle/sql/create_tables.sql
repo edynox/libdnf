@@ -42,7 +42,7 @@ R"***(
     CREATE TABLE trans_with (
         id INTEGER PRIMARY KEY,
         trans_id INTEGER REFERENCES trans(id),
-        item_id INTEGER REFERENCES item(id)
+        item_id INTEGER REFERENCES item(id),
         CONSTRAINT trans_with_unique_trans_item UNIQUE (trans_id, item_id)
     );
     CREATE TABLE rpm (
