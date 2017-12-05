@@ -23,6 +23,8 @@
 #define _SQLITE3_HPP
 
 #include <sqlite3.h>
+
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -46,11 +48,11 @@ public:
         size_t size;
         const void * data;
     };
-    
+
     class Statement {
     public:
         enum class StepResult {DONE, ROW, BUSY};
-
+        
         Statement(SQLite3 & db, const char * sql)
         : db{db}
         {
@@ -146,14 +148,66 @@ public:
             }
         }
 
-        size_t getColumnCount()
+        size_t getColumnCount() const
         {
             return sqlite3_column_count(stmt);
+        }
+
+        const char * getColumnDatabaseName(size_t idx) const
+        {
+            return sqlite3_column_database_name(stmt, idx);
+        }
+
+        const char * getColumnTableName(size_t idx) const
+        {
+            return sqlite3_column_table_name(stmt, idx);
+        }
+
+        const char * getColumnOriginName(size_t idx) const
+        {
+            return sqlite3_column_origin_name(stmt, idx);
+        }
+
+        const char * getColumnAsName(size_t idx) const
+        {
+            return sqlite3_column_name(stmt, idx);
+        }
+
+        const char * getSql() const
+        {
+            return sqlite3_sql(stmt);
+        }
+
+        const char * getExpandedSql()
+        {
+            expandSql = sqlite3_expanded_sql(stmt);
+            if (!expandSql) 
+                throw Exception(SQLITE_NOMEM, "getExpandedSql(): insufficient memory or result "
+                                              "exceed the the maximum SQLite3 string length");
+            return expandSql;
+        }
+
+        void freeExpandedSql()
+        {
+            sqlite3_free(expandSql);
+        }
+
+        void cacheColumnNames()
+        {
+            for (size_t idx = 0; idx < getColumnCount(); ++idx)
+            {
+                getColumnAsName(idx);
+            }
         }
 
         void reset()
         {
             sqlite3_reset(stmt);
+        }
+
+        void clearBindings()
+        {
+            sqlite3_clear_bindings(stmt);
         }
         
         template<typename T>
@@ -164,6 +218,7 @@ public:
 
         ~Statement()
         {
+            freeExpandedSql();
             sqlite3_finalize(stmt);
         };
 
@@ -210,7 +265,8 @@ public:
 
         std::string get(size_t idx, identity<std::string>)
         {
-            return reinterpret_cast<const char *>(sqlite3_column_text(stmt, idx));
+            auto ret = reinterpret_cast<const char *>(sqlite3_column_text(stmt, idx));
+            return ret ? ret : "";
         }
 
         Blob get(size_t idx, identity<Blob>)
@@ -218,9 +274,10 @@ public:
             return {static_cast<size_t>(sqlite3_column_bytes(stmt, idx)), sqlite3_column_blob(stmt, idx)};
         }
 
-
         SQLite3 & db;
         sqlite3_stmt * stmt;
+        std::map<std::string, size_t> name2idx;
+        char * expandSql{nullptr};
     };
 
     SQLite3(const char *dbPath)
