@@ -280,6 +280,9 @@ public:
         char * expandSql{nullptr};
     };
 
+    SQLite3(const SQLite3 &src) = delete;
+    SQLite3 & operator=(const SQLite3 &src) = delete;
+
     SQLite3(const char *dbPath)
     : path{dbPath}, db{nullptr}
     {
