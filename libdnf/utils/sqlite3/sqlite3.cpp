@@ -28,7 +28,7 @@ SQLite3::open()
         auto result = sqlite3_open(path.c_str(), &db);
         if (result != SQLITE_OK) {
             sqlite3_close(db);
-            throw Exception(result, "Open failed");
+            throw LibException(result, "Open failed");
         }
     }
 }
@@ -47,6 +47,6 @@ SQLite3::close()
         result = sqlite3_close(db);
     }
     if (result != SQLITE_OK)
-        throw Exception(result, "Close failed");
+        throw LibException(result, "Close failed");
     db = nullptr;
 }

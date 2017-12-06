@@ -35,11 +35,17 @@ public:
     class Exception : public std::runtime_error
     {
     public:
-        Exception(int code, const std::string & msg) : std::runtime_error(msg), ecode{code} {}
-        Exception(int code, const char * msg) : std::runtime_error(msg), ecode{code} {}
+        Exception(const std::string & msg) : runtime_error(msg) {}
+        Exception(const char * msg) : runtime_error(msg) {}
+    };
+
+    class LibException : public Exception
+    {
+    public:
+        LibException(int code, const std::string & msg) : Exception(msg), ecode{code} {}
+        LibException(int code, const char * msg) : Exception(msg), ecode{code} {}
         int code() const noexcept { return ecode; }
         const char * codeStr() const noexcept { return sqlite3_errstr(ecode); }
-
     protected:
         int ecode;
     };
@@ -52,13 +58,16 @@ public:
     class Statement {
     public:
         enum class StepResult {DONE, ROW, BUSY};
-        
+
+        Statement(const Statement &) = delete;
+        Statement & operator=(const Statement &) = delete;
+
         Statement(SQLite3 & db, const char * sql)
         : db{db}
         {
             auto result = sqlite3_prepare_v2(db.db, sql, -1, &stmt, nullptr);
             if (result != SQLITE_OK)
-                throw Exception(result, "Statement");
+                throw LibException(result, "Statement");
         };
 
         Statement(SQLite3 & db, const std::string & sql)
@@ -66,63 +75,63 @@ public:
         {
             auto result = sqlite3_prepare_v2(db.db, sql.c_str(), sql.length() + 1, &stmt, nullptr);
             if (result != SQLITE_OK)
-                throw Exception(result, "Statement");
+                throw LibException(result, "Statement");
         };
 
         void bind(int pos, int val)
         {
             auto result = sqlite3_bind_int(stmt, pos, val);
             if (result != SQLITE_OK)
-                throw Exception(result, "Integer bind failed");
+                throw LibException(result, "Integer bind failed");
         }
 
         void bind(int pos, std::int64_t val)
         {
             auto result = sqlite3_bind_int64(stmt, pos, val);
             if (result != SQLITE_OK)
-                throw Exception(result, "Integer64 bind failed");
+                throw LibException(result, "Integer64 bind failed");
         }
 
         void bind(int pos, double val)
         {
             auto result = sqlite3_bind_double(stmt, pos, val);
             if (result != SQLITE_OK)
-                throw Exception(result, "Double bind failed");
+                throw LibException(result, "Double bind failed");
         }
 
         void bind(int pos, bool val)
         {
             auto result = sqlite3_bind_int(stmt, pos, val ? 1 : 0);
             if (result != SQLITE_OK)
-                throw Exception(result, "Bool bind failed");
+                throw LibException(result, "Bool bind failed");
         }
 
         void bind(int pos, const char * val)
         {
             auto result = sqlite3_bind_text(stmt, pos, val, -1, SQLITE_TRANSIENT);
             if (result != SQLITE_OK)
-                throw Exception(result, "Text bind failed");
+                throw LibException(result, "Text bind failed");
         }
 
         void bind(int pos, const std::string & val)
         {
             auto result = sqlite3_bind_text(stmt, pos, val.c_str(), -1, SQLITE_TRANSIENT);
             if (result != SQLITE_OK)
-                throw Exception(result, "Text bind failed");
+                throw LibException(result, "Text bind failed");
         }
 
         void bind(int pos, const Blob & val)
         {
             auto result = sqlite3_bind_blob(stmt, pos, val.data, val.size, SQLITE_TRANSIENT);
             if (result != SQLITE_OK)
-                throw Exception(result, "Blob bind failed");
+                throw LibException(result, "Blob bind failed");
         }
 
         void bind(int pos, const std::vector<unsigned char> & val)
         {
             auto result = sqlite3_bind_blob(stmt, pos, val.data(), val.size(), SQLITE_TRANSIENT);
             if (result != SQLITE_OK)
-                throw Exception(result, "Blob bind failed");
+                throw LibException(result, "Blob bind failed");
         }
 
         template<typename... Args>
@@ -144,31 +153,31 @@ public:
                 case SQLITE_BUSY:
                     return StepResult::BUSY;
                 default:
-                    throw Exception(result, "Step failed");
+                    throw LibException(result, "Step failed");
             }
         }
 
-        size_t getColumnCount() const
+        int getColumnCount() const
         {
             return sqlite3_column_count(stmt);
         }
 
-        const char * getColumnDatabaseName(size_t idx) const
+        const char * getColumnDatabaseName(int idx) const
         {
             return sqlite3_column_database_name(stmt, idx);
         }
 
-        const char * getColumnTableName(size_t idx) const
+        const char * getColumnTableName(int idx) const
         {
             return sqlite3_column_table_name(stmt, idx);
         }
 
-        const char * getColumnOriginName(size_t idx) const
+        const char * getColumnOriginName(int idx) const
         {
             return sqlite3_column_origin_name(stmt, idx);
         }
 
-        const char * getColumnAsName(size_t idx) const
+        const char * getColumnName(int idx) const
         {
             return sqlite3_column_name(stmt, idx);
         }
@@ -182,22 +191,14 @@ public:
         {
             expandSql = sqlite3_expanded_sql(stmt);
             if (!expandSql) 
-                throw Exception(SQLITE_NOMEM, "getExpandedSql(): insufficient memory or result "
-                                              "exceed the the maximum SQLite3 string length");
+                throw Exception("getExpandedSql(): insufficient memory or result "
+                                "exceed the the maximum SQLite3 string length");
             return expandSql;
         }
 
         void freeExpandedSql()
         {
             sqlite3_free(expandSql);
-        }
-
-        void cacheColumnNames()
-        {
-            for (size_t idx = 0; idx < getColumnCount(); ++idx)
-            {
-                getColumnAsName(idx);
-            }
         }
 
         void reset()
@@ -209,9 +210,9 @@ public:
         {
             sqlite3_clear_bindings(stmt);
         }
-        
+
         template<typename T>
-        T get(size_t idx)
+        T get(int idx)
         {
             return get(idx, identity<T>{});
         }
@@ -222,7 +223,7 @@ public:
             sqlite3_finalize(stmt);
         };
 
-    private:
+    protected:
         struct Pass {
             template<typename ...T> Pass(T...) {}
         };
@@ -238,50 +239,91 @@ public:
             static_assert(sizeof(TL) == 0, "Not implemented");
         }*/
 
-        int get(size_t idx, identity<int>)
+        int get(int idx, identity<int>)
         {
             return sqlite3_column_int(stmt, idx);
         }
 
-        int64_t get(size_t idx, identity<int64_t>)
+        int64_t get(int idx, identity<int64_t>)
         {
             return sqlite3_column_int64(stmt, idx);
         }
 
-        double get(size_t idx, identity<double>)
+        double get(int idx, identity<double>)
         {
             return sqlite3_column_double(stmt, idx);
         }
 
-        bool get(size_t idx, identity<bool>)
+        bool get(int idx, identity<bool>)
         {
             return sqlite3_column_int(stmt, idx) != 0;
         }
 
-        const char * get(size_t idx, identity<const char *>)
+        const char * get(int idx, identity<const char *>)
         {
             return reinterpret_cast<const char *>(sqlite3_column_text(stmt, idx));
         }
 
-        std::string get(size_t idx, identity<std::string>)
+        std::string get(int idx, identity<std::string>)
         {
             auto ret = reinterpret_cast<const char *>(sqlite3_column_text(stmt, idx));
             return ret ? ret : "";
         }
 
-        Blob get(size_t idx, identity<Blob>)
+        Blob get(int idx, identity<Blob>)
         {
             return {static_cast<size_t>(sqlite3_column_bytes(stmt, idx)), sqlite3_column_blob(stmt, idx)};
         }
 
         SQLite3 & db;
         sqlite3_stmt * stmt;
-        std::map<std::string, size_t> name2idx;
         char * expandSql{nullptr};
     };
 
-    SQLite3(const SQLite3 &src) = delete;
-    SQLite3 & operator=(const SQLite3 &src) = delete;
+    class Query : public Statement {
+    public:
+        Query(SQLite3 & db, const char * sql)
+        : Statement{db, sql}
+        {
+            mapColsName();
+        }
+        Query(SQLite3 & db, const std::string & sql)
+        : Statement{db, sql}
+        {
+            mapColsName();
+        }
+
+        int getColumnIndex(const std::string & colName)
+        {
+            auto it = colsName2idx.find(colName);
+            if (it == colsName2idx.end())
+                throw Exception("get() column \"" + colName + "\" not found");
+            return it->second;
+        }
+
+        using Statement::get;
+
+        template<typename T>
+        T get(const std::string & colName)
+        {
+            return get(getColumnIndex(colName), identity<T>{});
+        }
+
+    private:
+        void mapColsName()
+        {
+            for (int idx = 0; idx < getColumnCount(); ++idx) {
+                const char *name = getColumnName(idx);
+                if (name)
+                    colsName2idx[name] = idx;
+            }
+        }
+
+        std::map<std::string, int> colsName2idx;
+    };
+
+    SQLite3(const SQLite3 &) = delete;
+    SQLite3 & operator=(const SQLite3 &) = delete;
 
     SQLite3(const char *dbPath)
     : path{dbPath}, db{nullptr}
@@ -295,17 +337,20 @@ public:
 
     void exec(const char *sql)
     {
-        open();
         auto result = sqlite3_exec(db, sql, nullptr, nullptr, nullptr);
         if (result != SQLITE_OK) {
-            throw Exception(result, "Exec failed");
+            throw LibException(result, "Exec failed");
         }
+    }
+
+    int changes()
+    {
+        return sqlite3_changes(db);
     }
 
     int64_t lastInsertRowID()
     {
-        open();
-        return sqlite3_last_insert_rowid (db);
+        return sqlite3_last_insert_rowid(db);
     }
 
   protected:
