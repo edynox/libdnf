@@ -1,3 +1,7 @@
+FIND_PACKAGE (SWIG REQUIRED)
+INCLUDE (UseSWIG)
+
+
 SET (LIBDNF_SRCS
     dnf-advisorypkg.cpp
     dnf-advisoryref.cpp
@@ -212,6 +216,36 @@ if (GOBJECT_INTROSPECTION_FOUND)
                 COMPONENT libraries)
     endif()
 endif()
+
+
+if (NOT PYTHON_DESIRED)
+    set (PYTHON_DESIRED "3")
+endif()
+
+if (${PYTHON_DESIRED} STREQUAL "2")
+    message("Building for python2")
+    FIND_PACKAGE (PythonInterp 2 REQUIRED)
+    FIND_PACKAGE (PythonLibs 2 REQUIRED)
+else()
+    message("Building for python3")
+    FIND_PACKAGE(PythonInterp 3 REQUIRED)
+    FIND_PACKAGE(PythonLibs 3 REQUIRED)
+endif()
+
+
+INCLUDE (UseSWIG)
+INCLUDE_DIRECTORIES (${PYTHON_INCLUDE_PATH})
+
+SET_SOURCE_FILES_PROPERTIES (swig/utils.i PROPERTIES CPLUSPLUS ON)
+SWIG_ADD_MODULE (utils python swig/utils.i)
+SWIG_LINK_LIBRARIES (utils libdnf)
+SWIG_LINK_LIBRARIES (utils ${PYTHON_LIBRARY})
+SWIG_LINK_LIBRARIES (utils ${SQLite3_LIBRARIES})
+
+SET_SOURCE_FILES_PROPERTIES (swig/swdb.i PROPERTIES CPLUSPLUS ON)
+SWIG_ADD_MODULE (swdb python swig/swdb.i)
+SWIG_LINK_LIBRARIES (swdb libdnf)
+SWIG_LINK_LIBRARIES (swdb ${PYTHON_LIBRARY})
 
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/libdnf.pc
          DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig)
