@@ -34,6 +34,8 @@ class CompsEnvironmentItem : public Item {
 public:
     CompsEnvironmentItem(SQLite3 & conn);
     CompsEnvironmentItem(SQLite3 & conn, int64_t pk);
+    virtual ~CompsEnvironmentItem() = default;
+
 
     const std::string & getEnvironmentId() const noexcept { return environmentId; }
     void setEnvironmentId(const std::string & value) { environmentId = value; }

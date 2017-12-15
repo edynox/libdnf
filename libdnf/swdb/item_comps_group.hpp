@@ -41,6 +41,7 @@ class CompsGroupItem : public Item {
 public:
     CompsGroupItem(SQLite3 & conn);
     CompsGroupItem(SQLite3 & conn, int64_t pk);
+    virtual ~CompsGroupItem() = default;
 
     const std::string & getGroupId() const noexcept { return groupId; }
     void setGroupId(const std::string & value) { groupId = value; }
