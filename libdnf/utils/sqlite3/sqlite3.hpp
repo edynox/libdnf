@@ -322,12 +322,8 @@ public:
         std::map<std::string, int> colsName2idx;
     };
 
-    // Temporarily disabled due to SWIG error:
-    //   In function ‘PyObject* _wrap_Transaction_conn_set(PyObject*, PyObject*)’:
-    //   error: use of deleted function ‘SQLite3& SQLite3::operator=(const SQLite3&)’
-
-    // SQLite3(const SQLite3 &) = delete;
-    // SQLite3 & operator=(const SQLite3 &) = delete;
+    SQLite3(const SQLite3 &) = delete;
+    SQLite3 & operator=(const SQLite3 &) = delete;
 
     SQLite3(const char *dbPath)
     : path{dbPath}, db{nullptr}
