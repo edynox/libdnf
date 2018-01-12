@@ -8,6 +8,8 @@ SET(SWDB_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/transaction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/transactionitem.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/transformer.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/output.cpp
 )
 
 SET(LIBDNF_SRCS

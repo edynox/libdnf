@@ -63,7 +63,7 @@ INCLUDE_DIRECTORIES(${GLIB_INCLUDE_DIRS})
 link_directories(${REPO_LIBRARY_DIRS})
 
 if (NOT PYTHON_DESIRED)
-    set (PYTHON_DESIRED "2")
+    set (PYTHON_DESIRED "3")
 endif()
 
 # rpm:
@@ -80,6 +80,13 @@ IF (WITH_SWDB)
     pkg_check_modules(SQLite3 sqlite3 REQUIRED)
 ENDIF()
 
+find_package (PkgConfig REQUIRED)
+pkg_check_modules (SCOLS REQUIRED smartcols)
+include_directories (${SCOLS_INCLUDE_DIRS})
+
+
+
+
 ADD_DEFINITIONS(-DTESTDATADIR=\\"${CMAKE_SOURCE_DIR}/data/tests\\")
 ADD_DEFINITIONS(-DPACKAGE_VERSION=\\"${LIBDNF_VERSION}\\")
 
@@ -87,7 +94,7 @@ include (GNUInstallDirs)
 
 ADD_SUBDIRECTORY (libdnf)
 ADD_SUBDIRECTORY (po)
-ADD_SUBDIRECTORY (bindings/perl)
+# ADD_SUBDIRECTORY (bindings/perl)
 ADD_SUBDIRECTORY (bindings/python)
 ENABLE_TESTING()
 ADD_SUBDIRECTORY (tests)
