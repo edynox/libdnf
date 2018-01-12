@@ -25,7 +25,6 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -246,10 +245,13 @@ fillRPMItem(std::shared_ptr< RPMItem > rpm, SQLite3::Query &query)
     rpm->save();
 }
 
-static std::tuple< TransactionItemReason, std::string >
-getYumdbData(int64_t itemId, std::shared_ptr< SQLite3 > history)
+static void
+getYumdbData(int64_t itemId,
+             std::shared_ptr< SQLite3 > history,
+             TransactionItemReason &reason,
+             std::string &repoid)
 {
-    const char *yumdb_sql = R"**(
+    const char *sql = R"**(
         SELECT
             yumdb_key as key,
             yumdb_val as value
@@ -260,22 +262,17 @@ getYumdbData(int64_t itemId, std::shared_ptr< SQLite3 > history)
             and key IN ('reason', 'from_repo')
     )**";
 
-    std::string repoid;
-    TransactionItemReason reason = TransactionItemReason::UNKNOWN;
-
     // load reason and repoid data from yumdb
-    SQLite3::Query yumdb_query(*history.get(), yumdb_sql);
-    yumdb_query.bindv(itemId);
-    while (yumdb_query.step() == SQLite3::Statement::StepResult::ROW) {
-        std::string key = yumdb_query.get< std::string >("key");
+    SQLite3::Query query(*history.get(), sql);
+    query.bindv(itemId);
+    while (query.step() == SQLite3::Statement::StepResult::ROW) {
+        std::string key = query.get< std::string >("key");
         if (key == "reason") {
-            reason = getReason(yumdb_query.get< std::string >("value"));
+            reason = getReason(query.get< std::string >("value"));
         } else if (key == "from_repo") {
-            repoid = yumdb_query.get< std::string >("value");
+            repoid = query.get< std::string >("value");
         }
     }
-
-    return std::tuple< TransactionItemReason, std::string >(reason, repoid);
 }
 
 /**
@@ -318,7 +315,7 @@ Transformer::transformRPMItems(std::shared_ptr< SQLite3 > swdb,
      * so we can promote them to Updated in case.
      * Obsoleted records will be kept in item_replaced table,
      * so it's always obvious, that particular package was both Obsoleted
-     * and Updated. Technically we can replace action Obsoleted with action Erase.
+     * and Updated. Technically, we could replace action Obsoleted with action Erase.
      */
     std::map< int64_t, std::shared_ptr< TransactionItem > > obsoletedItems;
 
@@ -347,9 +344,9 @@ Transformer::transformRPMItems(std::shared_ptr< SQLite3 > swdb,
             // item hasn't been obsoleted yet
 
             // load reason and from_repo
-            TransactionItemReason reason;
+            TransactionItemReason reason = TransactionItemReason::UNKNOWN;
             std::string repoid;
-            std::tie(reason, repoid) = getYumdbData(query.get< int64_t >("id"), history);
+            getYumdbData(query.get< int64_t >("id"), history, reason, repoid);
 
             // add TransactionItem object
             transItem = trans->addItem(rpm, repoid, action, reason);
