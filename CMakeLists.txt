@@ -80,13 +80,6 @@ IF (WITH_SWDB)
     pkg_check_modules(SQLite3 sqlite3 REQUIRED)
 ENDIF()
 
-find_package (PkgConfig REQUIRED)
-pkg_check_modules (SCOLS REQUIRED smartcols)
-include_directories (${SCOLS_INCLUDE_DIRS})
-
-
-
-
 ADD_DEFINITIONS(-DTESTDATADIR=\\"${CMAKE_SOURCE_DIR}/data/tests\\")
 ADD_DEFINITIONS(-DPACKAGE_VERSION=\\"${LIBDNF_VERSION}\\")
 
