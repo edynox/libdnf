@@ -40,6 +40,9 @@ public:
     // load from db
     Transaction(std::shared_ptr< SQLite3 > conn, int64_t pk);
 
+    bool operator=(const Transaction &other);
+    bool operator<(const Transaction &other);
+
     int64_t getId() const noexcept { return id; }
     void setId(int64_t value) { id = value; }
 

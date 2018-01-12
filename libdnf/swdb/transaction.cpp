@@ -37,6 +37,36 @@ Transaction::Transaction(std::shared_ptr< SQLite3 > conn, int64_t pk)
     dbSelect(pk);
 }
 
+bool
+Transaction::operator=(const Transaction &other)
+{
+    if (getId() != other.getId()) {
+        return false;
+    }
+    if (getDtBegin() != other.getDtBegin()) {
+        return false;
+    }
+    if (getRpmdbVersionBegin() != other.getRpmdbVersionBegin()) {
+        return false;
+    }
+    return true;
+}
+
+bool
+Transaction::operator<(const Transaction &other)
+{
+    if (getId() > other.getId()) {
+        return true;
+    }
+    if (getDtBegin() > other.getDtBegin()) {
+        return true;
+    }
+    if (getRpmdbVersionBegin() > other.getRpmdbVersionBegin()) {
+        return true;
+    }
+    return false;
+}
+
 void
 Transaction::save()
 {
