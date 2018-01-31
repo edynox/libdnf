@@ -99,7 +99,7 @@ MergedTransaction::getRpmdbVersionBegin() const noexcept
 const std::string &
 MergedTransaction::getRpmdbVersionEnd() const noexcept
 {
-    return transactions.back()->getRpmdbVersionBegin();
+    return transactions.back()->getRpmdbVersionEnd();
 }
 
 std::set< std::shared_ptr< RPMItem > >

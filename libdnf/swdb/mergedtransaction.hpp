@@ -46,6 +46,8 @@ public:
     std::set< std::shared_ptr< RPMItem > > getSoftwarePerformedWith() const;
     std::vector< std::pair< int, std::string > > getConsoleOutput();
 
+    // TODO std::vector< std::shared_ptr< TransactionItem > > getItems();
+
 protected:
     std::vector< std::shared_ptr< Transaction > > transactions;
 };
