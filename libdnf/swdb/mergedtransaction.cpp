@@ -20,13 +20,23 @@
 
 #include "mergedtransaction.hpp"
 
-MergedTransaction::MergedTransaction(std::shared_ptr< Transaction > trans)
+/**
+ * Create a new MergedTransaction object with a single transaction
+ * \param trans initial transaction
+ */
+MergedTransaction::MergedTransaction(TransactionPtr trans)
   : transactions{trans}
 {
 }
 
+/**
+ * Merge \trans into this transaction
+ * Internally, transactions are kept in a sorted vector, what allows to
+ *  easily access merged transaction properties on demand.
+ * \param trans transaction to be merged with
+ */
 void
-MergedTransaction::merge(std::shared_ptr< Transaction > trans)
+MergedTransaction::merge(TransactionPtr trans)
 {
     bool inserted = false;
     for (auto it = transactions.begin(); it < transactions.end(); ++it) {
@@ -41,6 +51,10 @@ MergedTransaction::merge(std::shared_ptr< Transaction > trans)
     }
 }
 
+/**
+ * Get IDs of the transactions involved in the merged transaction
+ * \return list of transaction IDs sorted in ascending order
+ */
 std::vector< int64_t >
 MergedTransaction::listIds() const noexcept
 {
@@ -50,6 +64,11 @@ MergedTransaction::listIds() const noexcept
     }
     return ids;
 }
+
+/**
+ * Get UNIX IDs of users who performed the transaction.
+ * \return list of user IDs sorted by transaction ID in ascending order
+ */
 std::vector< int64_t >
 MergedTransaction::listUserIds() const noexcept
 {
@@ -60,6 +79,10 @@ MergedTransaction::listUserIds() const noexcept
     return users;
 }
 
+/**
+ * Get list of commands that started the transaction
+ * \return list of commands sorted by transaction ID in ascending order
+ */
 std::vector< std::string >
 MergedTransaction::listCmdlines() const noexcept
 {
@@ -102,10 +125,10 @@ MergedTransaction::getRpmdbVersionEnd() const noexcept
     return transactions.back()->getRpmdbVersionEnd();
 }
 
-std::set< std::shared_ptr< RPMItem > >
+std::set< RPMItemPtr >
 MergedTransaction::getSoftwarePerformedWith() const
 {
-    std::set< std::shared_ptr< RPMItem > > software;
+    std::set< RPMItemPtr > software;
     for (auto t : transactions) {
         auto tranSoft = t->getSoftwarePerformedWith();
         software.insert(tranSoft.begin(), tranSoft.end());
@@ -122,4 +145,209 @@ MergedTransaction::getConsoleOutput()
         output.insert(output.end(), tranOutput.begin(), tranOutput.end());
     }
     return output;
+}
+
+/**
+ * Get list of transaction items involved in the merged transaction
+ * Actions are merged using following rules:
+ * (old action) -> (new action) = (merged action)
+ *
+ * Erase/Obsolete -> Install/Obsoleting = Reinstall/Downgrade/Update
+ *
+ * Reinstall/Reason change -> (new action) = (new action)
+ *
+ * Install -> Erase = (nothing)
+ *
+ * Install -> Update/Downgrade = Install (with updated version)
+ *
+ * Downgrade/Update/Obsoleting -> Reinstall = (old action)
+ *
+ * Downgrade/Update/Obsoleting -> Erase/Obsoleted = Erase/Obsolete (with old package)
+ *
+ * Downgrade/Update/Obsoleting -> Downgraded/Updated =
+ *       we have to make a difference between actual transaction
+ *       and new one. When transaction package pair is not complete,
+ *       then we are problably still operating original one.
+ *
+ *       With complete transaction pair we just need to get a new
+ *       Update/Downgrade package and compare versions with original
+ *       package from pair
+ *
+ *       State of updated Obsoleting packages will be transfered
+ *       to a new version
+ *
+ */
+std::vector< MergedTransactionItemPtr >
+MergedTransaction::getItems()
+{
+    ItemPairMap itemPairMap;
+
+    // iterate over transaction
+    for (auto t : transactions) {
+        auto transItems = t->getItems();
+        // iterate over transaction items
+        for (auto transItem : transItems) {
+            // get item and its type
+            auto mTransItem = std::make_shared< MergedTransactionItem >(transItem);
+            mergeItem(itemPairMap, mTransItem);
+        }
+    }
+
+    std::vector< MergedTransactionItemPtr > items;
+    for (const auto &row : itemPairMap) {
+        ItemPair itemPair = row.second;
+        items.push_back(itemPair.first);
+        if (itemPair.second != nullptr) {
+            items.push_back(itemPair.second);
+        }
+    }
+    return items;
+}
+
+static std::string
+getItemIdentifier(ItemPtr item)
+{
+    auto itemType = item->getItemType();
+    std::string name;
+    if (itemType == ItemType::RPM) {
+        auto rpm = std::dynamic_pointer_cast< RPMItem >(item);
+        name = rpm->getName();
+    } else if (itemType == ItemType::GROUP) {
+        auto group = std::dynamic_pointer_cast< CompsGroupItem >(item);
+        name = group->getGroupId();
+    } else if (itemType == ItemType::ENVIRONMENT) {
+        auto env = std::dynamic_pointer_cast< CompsEnvironmentItem >(item);
+        name = env->getEnvironmentId();
+    }
+    return name;
+}
+
+/**
+ * Resolve the difference between RPMs in the first and second transaction item
+ *  and create a ItemPair of Upgrade, Downgrade or reinstall.
+ * Method is called when original package is being removed and than installed again.
+ * \param first first transaction item
+ * \param second second transaction item
+ * \return transaction pair
+ */
+MergedTransaction::ItemPair
+MergedTransaction::resolveRPMDifference(MergedTransactionItemPtr first,
+                                        MergedTransactionItemPtr second)
+{
+    auto firstItem = first->getItem();
+    auto secondItem = second->getItem();
+
+    auto firstRPM = std::dynamic_pointer_cast< RPMItem >(firstItem);
+    auto secondRPM = std::dynamic_pointer_cast< RPMItem >(secondItem);
+
+    if (firstRPM->getVersion() == secondRPM->getVersion() &&
+        firstRPM->getEpoch() == secondRPM->getEpoch()) {
+        // reinstall
+        second->setAction(TransactionItemAction::REINSTALL);
+        return ItemPair(second, nullptr);
+    } else if ((*firstRPM) < (*secondRPM)) {
+        // Update to secondRPM
+        first->setAction(TransactionItemAction::UPGRADED);
+        second->setAction(TransactionItemAction::UPGRADE);
+    } else {
+        // Downgrade to secondRPM
+        first->setAction(TransactionItemAction::DOWNGRADED);
+        second->setAction(TransactionItemAction::DOWNGRADE);
+    }
+    return ItemPair(first, second);
+}
+
+void
+MergedTransaction::mergeItem(ItemPairMap &itemPairMap, MergedTransactionItemPtr mTransItem)
+{
+    auto item = mTransItem->getItem();
+    auto itemType = item->getItemType();
+
+    // get item identifier
+    std::string name = getItemIdentifier(item);
+
+    auto previous = itemPairMap.find(name);
+    if (previous == itemPairMap.end()) {
+        itemPairMap[name] = ItemPair(mTransItem, nullptr);
+        return;
+    }
+
+    auto previousItemPair = previous->second;
+
+    auto firstState = previousItemPair.first->getAction();
+    auto newState = mTransItem->getAction();
+
+    switch (firstState) {
+        case TransactionItemAction::REMOVE: // or
+        case TransactionItemAction::OBSOLETED: {
+            /*
+             * The original item has been removed - it has to be installed now unless the rpmdb
+             *  has changed. Resolve the difference between packages and mark it as Upgrade,
+             *  Reinstall or Downgrade
+             */
+            if (newState == TransactionItemAction::INSTALL) {
+                if (itemType == ItemType::RPM) {
+                    // resolve the difference between RPM packages
+                    itemPairMap[name] = resolveRPMDifference(previousItemPair.first, mTransItem);
+                } else {
+                    /*
+                     * we can not resolve differences between groups and environments
+                     * so lets consider it Reinstalled
+                     */
+                    mTransItem->setAction(TransactionItemAction::REINSTALL);
+                    itemPairMap[name] = ItemPair(mTransItem, nullptr);
+                }
+            } else {
+                // rpmdb altered - keep just the new one
+                itemPairMap[name] = ItemPair(mTransItem, nullptr);
+            }
+            break;
+        }
+        case TransactionItemAction::REINSTALL: // or
+        case TransactionItemAction::REASON_CHANGE: {
+            /*
+             * The original item has been reinstalled or the reason has been changed
+             * -> keep the new action
+             */
+            itemPairMap[name] = ItemPair(mTransItem, nullptr);
+            break;
+        }
+        case TransactionItemAction::INSTALL: {
+            // the original package has been installed -> it may be either Removed, or altered
+            if (newState == TransactionItemAction::REMOVE ||
+                newState == TransactionItemAction::OBSOLETED) {
+                // Install -> Remove = (nothing)
+                itemPairMap.erase(name);
+            } else {
+                // altered -> transfer install to the altered package
+                mTransItem->setAction(TransactionItemAction::INSTALL);
+                itemPairMap[name] = ItemPair(mTransItem, nullptr);
+            }
+            break;
+        }
+        // handle install
+        case TransactionItemAction::DOWNGRADE:
+        case TransactionItemAction::DOWNGRADED:
+        case TransactionItemAction::UPGRADE:
+        case TransactionItemAction::UPGRADED:
+        case TransactionItemAction::OBSOLETE: {
+            if (newState == TransactionItemAction::REMOVE ||
+                newState == TransactionItemAction::OBSOLETED) {
+                // package is being Erased
+                // move Erased action to the previous state
+                auto previousItem = previousItemPair.first;
+                previousItem->setAction(newState);
+                itemPairMap[name] = ItemPair(previousItem, nullptr);
+            } else if (newState == TransactionItemAction::DOWNGRADED ||
+                       newState == TransactionItemAction::UPDATED) {
+                // TODO
+            } else if (newState == TransactionItemAction::DOWNGRADE ||
+                       newState == TransactionItemAction::UPGRADE) {
+                // TODO
+            }
+        }
+        // TODO FINISHME _merge_handle_alter in old SWDB
+        // resolve incomplete pairs
+        break;
+    }
 }
