@@ -152,30 +152,24 @@ MergedTransaction::getConsoleOutput()
  * Actions are merged using following rules:
  * (old action) -> (new action) = (merged action)
  *
- * Erase/Obsolete -> Install/Obsoleting = Reinstall/Downgrade/Update
+ * Erase/Obsolete -> Install/Obsoleting = Reinstall/Downgrade/Upgrade
  *
  * Reinstall/Reason change -> (new action) = (new action)
  *
  * Install -> Erase = (nothing)
  *
- * Install -> Update/Downgrade = Install (with updated version)
+ * Install -> Upgrade/Downgrade = Install (with Upgrade version)
  *
- * Downgrade/Update/Obsoleting -> Reinstall = (old action)
+ * Downgrade/Upgrade/Obsoleting -> Reinstall = (old action)
  *
- * Downgrade/Update/Obsoleting -> Erase/Obsoleted = Erase/Obsolete (with old package)
+ * Downgrade/Upgrade/Obsoleting -> Erase/Obsoleted = Erase/Obsolete (with old package)
  *
- * Downgrade/Update/Obsoleting -> Downgraded/Updated =
- *       we have to make a difference between actual transaction
- *       and new one. When transaction package pair is not complete,
- *       then we are problably still operating original one.
+ * Downgrade/Upgrade/Obsoleting -> Downgraded/Upgrade =
+ *      We have differentiate between original transaction, and new one.
+ *      When a transaction package pair is not complete, then we are still in original one.
  *
- *       With complete transaction pair we just need to get a new
- *       Update/Downgrade package and compare versions with original
- *       package from pair
- *
- *       State of updated Obsoleting packages will be transfered
- *       to a new version
- *
+ *      With complete transaction pair we need to get a new Upgrade/Downgrade package and
+ *      compare versions with original package from pair.
  */
 std::vector< MergedTransactionItemPtr >
 MergedTransaction::getItems()
@@ -226,16 +220,15 @@ getItemIdentifier(ItemPtr item)
  * Resolve the difference between RPMs in the first and second transaction item
  *  and create a ItemPair of Upgrade, Downgrade or reinstall.
  * Method is called when original package is being removed and than installed again.
- * \param first first transaction item
- * \param second second transaction item
- * \return transaction pair
+ * \param previousItemPair original item pair
+ * \param mTransItem new transaction item
  */
-MergedTransaction::ItemPair
-MergedTransaction::resolveRPMDifference(MergedTransactionItemPtr first,
-                                        MergedTransactionItemPtr second)
+void
+MergedTransaction::resolveRPMDifference(ItemPair &previousItemPair,
+                                        MergedTransactionItemPtr mTransItem)
 {
-    auto firstItem = first->getItem();
-    auto secondItem = second->getItem();
+    auto firstItem = previousItemPair.first->getItem();
+    auto secondItem = mTransItem->getItem();
 
     auto firstRPM = std::dynamic_pointer_cast< RPMItem >(firstItem);
     auto secondRPM = std::dynamic_pointer_cast< RPMItem >(secondItem);
@@ -243,28 +236,117 @@ MergedTransaction::resolveRPMDifference(MergedTransactionItemPtr first,
     if (firstRPM->getVersion() == secondRPM->getVersion() &&
         firstRPM->getEpoch() == secondRPM->getEpoch()) {
         // reinstall
-        second->setAction(TransactionItemAction::REINSTALL);
-        return ItemPair(second, nullptr);
+        mTransItem->setAction(TransactionItemAction::REINSTALL);
+        previousItemPair.first = mTransItem;
+        previousItemPair.second = nullptr;
+        return;
     } else if ((*firstRPM) < (*secondRPM)) {
-        // Update to secondRPM
-        first->setAction(TransactionItemAction::UPGRADED);
-        second->setAction(TransactionItemAction::UPGRADE);
+        // Upgrade to secondRPM
+        previousItemPair.first->setAction(TransactionItemAction::UPGRADED);
+        mTransItem->setAction(TransactionItemAction::UPGRADE);
     } else {
         // Downgrade to secondRPM
-        first->setAction(TransactionItemAction::DOWNGRADED);
-        second->setAction(TransactionItemAction::DOWNGRADE);
+        previousItemPair.first->setAction(TransactionItemAction::DOWNGRADED);
+        mTransItem->setAction(TransactionItemAction::DOWNGRADE);
     }
-    return ItemPair(first, second);
+    previousItemPair.second = mTransItem;
 }
 
 void
+MergedTransaction::resolveErase(ItemPair &previousItemPair, MergedTransactionItemPtr mTransItem)
+{
+    /*
+     * The original item has been removed - it has to be installed now unless the rpmdb
+     *  has changed. Resolve the difference between packages and mark it as Upgrade,
+     *  Reinstall or Downgrade
+     */
+    if (mTransItem->getAction() == TransactionItemAction::INSTALL) {
+        if (mTransItem->getItem()->getItemType() == ItemType::RPM) {
+            // resolve the difference between RPM packages
+            resolveRPMDifference(previousItemPair, mTransItem);
+        } else {
+            // difference between comps can't be resolved
+            mTransItem->setAction(TransactionItemAction::REINSTALL);
+        }
+    }
+    previousItemPair.first = mTransItem;
+    previousItemPair.second = nullptr;
+}
+
+/**
+ * Resolve altered - Upgrade(d)/Downgrade(d) transaction items.
+ * If the new item is Erased or Obsoleted, than its action is transfered to the original pair.
+ * When its being Downgraded/Upgraded and the pair is incomplete then we are in the same
+ * transaction - new package is used to complete the pair. Items are stored in pairs (Upgrade,
+ * Upgrade) or (Downgraded, Downgrade). With complete transactíon pair we need to get the new
+ * Upgrade/Downgrade item and compare its version with the original item from the pair.
+ * \param previousItemPair original item pair
+ * \param mTransItem new transaction item
+ */
+void
+MergedTransaction::resolveAltered(ItemPair &previousItemPair, MergedTransactionItemPtr mTransItem)
+{
+    auto newState = mTransItem->getAction();
+    auto firstState = previousItemPair.first->getAction();
+
+    if (newState == TransactionItemAction::REMOVE || newState == TransactionItemAction::OBSOLETED) {
+        // package is being Erased
+        // move Erased action to the previous state
+        previousItemPair.first->setAction(newState);
+        previousItemPair.second = nullptr;
+    } else if (newState == TransactionItemAction::DOWNGRADED ||
+               newState == TransactionItemAction::UPGRADED) {
+        // check if the transaction pair is complete
+        if (previousItemPair.second == nullptr) {
+            // pair might be in a wrong order
+            if (firstState == TransactionItemAction::DOWNGRADE ||
+                firstState == TransactionItemAction::UPGRADE) {
+                // fix the order
+                previousItemPair.second = previousItemPair.first;
+                previousItemPair.first = mTransItem;
+            }
+        }
+        // XXX handle obsoleting state -> state is not supported anymore, so it can't
+        // occur anymore - maybe we should set some "Obsoleting" flag or what
+        // state of obsoleting package should be transfeted to a new package
+        /*
+         * Otherwise we can just drop the package
+         * Original package from new transaction should be the same as a new package
+         * from previous transaction - unless the RPMDB has altered.
+         */
+
+    } else if (newState == TransactionItemAction::DOWNGRADE ||
+               newState == TransactionItemAction::UPGRADE) {
+        /*
+         * Check whether second item is missing in transaction pair
+         * When it does, complete the transaction pair.
+         */
+        if (previousItemPair.second == nullptr) {
+            previousItemPair.second = mTransItem;
+        } else {
+            if (mTransItem->getItem()->getItemType() == ItemType::RPM) {
+                // resolve the difference between RPM packages
+                resolveRPMDifference(previousItemPair, mTransItem);
+            } else {
+                // differece between comps can't be resolved
+                previousItemPair.second->setAction(TransactionItemAction::REINSTALL);
+                previousItemPair.first = previousItemPair.second;
+                previousItemPair.second = nullptr;
+            }
+        }
+    }
+}
+
+/**
+ * Merge transaction item into merged transaction set
+ * \param itemPairMap merged transaction set
+ * \param mTransItem transaction item
+ */
+void
 MergedTransaction::mergeItem(ItemPairMap &itemPairMap, MergedTransactionItemPtr mTransItem)
 {
-    auto item = mTransItem->getItem();
-    auto itemType = item->getItemType();
-
     // get item identifier
-    std::string name = getItemIdentifier(item);
+    std::string name = getItemIdentifier(mTransItem->getItem());
 
     auto previous = itemPairMap.find(name);
     if (previous == itemPairMap.end()) {
@@ -272,82 +354,40 @@ MergedTransaction::mergeItem(ItemPairMap &itemPairMap, MergedTransactionItemPtr 
         return;
     }
 
-    auto previousItemPair = previous->second;
+    ItemPair &previousItemPair = previous->second;
 
     auto firstState = previousItemPair.first->getAction();
     auto newState = mTransItem->getAction();
 
     switch (firstState) {
-        case TransactionItemAction::REMOVE: // or
-        case TransactionItemAction::OBSOLETED: {
-            /*
-             * The original item has been removed - it has to be installed now unless the rpmdb
-             *  has changed. Resolve the difference between packages and mark it as Upgrade,
-             *  Reinstall or Downgrade
-             */
-            if (newState == TransactionItemAction::INSTALL) {
-                if (itemType == ItemType::RPM) {
-                    // resolve the difference between RPM packages
-                    itemPairMap[name] = resolveRPMDifference(previousItemPair.first, mTransItem);
-                } else {
-                    /*
-                     * we can not resolve differences between groups and environments
-                     * so lets consider it Reinstalled
-                     */
-                    mTransItem->setAction(TransactionItemAction::REINSTALL);
-                    itemPairMap[name] = ItemPair(mTransItem, nullptr);
-                }
-            } else {
-                // rpmdb altered - keep just the new one
-                itemPairMap[name] = ItemPair(mTransItem, nullptr);
-            }
+        case TransactionItemAction::REMOVE:
+        case TransactionItemAction::OBSOLETED:
+            resolveErase(previousItemPair, mTransItem);
             break;
-        }
-        case TransactionItemAction::REINSTALL: // or
-        case TransactionItemAction::REASON_CHANGE: {
-            /*
-             * The original item has been reinstalled or the reason has been changed
-             * -> keep the new action
-             */
-            itemPairMap[name] = ItemPair(mTransItem, nullptr);
-            break;
-        }
-        case TransactionItemAction::INSTALL: {
+        case TransactionItemAction::INSTALL:
             // the original package has been installed -> it may be either Removed, or altered
             if (newState == TransactionItemAction::REMOVE ||
                 newState == TransactionItemAction::OBSOLETED) {
                 // Install -> Remove = (nothing)
                 itemPairMap.erase(name);
-            } else {
-                // altered -> transfer install to the altered package
-                mTransItem->setAction(TransactionItemAction::INSTALL);
-                itemPairMap[name] = ItemPair(mTransItem, nullptr);
+                break;
             }
+            // altered -> transfer install to the altered package
+            mTransItem->setAction(TransactionItemAction::INSTALL);
+            // don't break
+        case TransactionItemAction::REINSTALL:
+        case TransactionItemAction::REASON_CHANGE:
+            // The original item has been reinstalled or the reason has been changed
+            // keep the new action
+            previousItemPair.first = mTransItem;
+            previousItemPair.second = nullptr;
             break;
-        }
-        // handle install
         case TransactionItemAction::DOWNGRADE:
         case TransactionItemAction::DOWNGRADED:
         case TransactionItemAction::UPGRADE:
         case TransactionItemAction::UPGRADED:
-        case TransactionItemAction::OBSOLETE: {
-            if (newState == TransactionItemAction::REMOVE ||
-                newState == TransactionItemAction::OBSOLETED) {
-                // package is being Erased
-                // move Erased action to the previous state
-                auto previousItem = previousItemPair.first;
-                previousItem->setAction(newState);
-                itemPairMap[name] = ItemPair(previousItem, nullptr);
-            } else if (newState == TransactionItemAction::DOWNGRADED ||
-                       newState == TransactionItemAction::UPDATED) {
-                // TODO
-            } else if (newState == TransactionItemAction::DOWNGRADE ||
-                       newState == TransactionItemAction::UPGRADE) {
-                // TODO
-            }
-        }
-        // TODO FINISHME _merge_handle_alter in old SWDB
-        // resolve incomplete pairs
-        break;
+        case TransactionItemAction::OBSOLETE:
+            resolveAltered(previousItemPair, mTransItem);
+            break;
     }
 }

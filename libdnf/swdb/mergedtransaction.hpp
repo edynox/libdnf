@@ -44,8 +44,8 @@ public:
     {
     }
 
-    std::shared_ptr< Item > getItem() const noexcept { return item; }
-    void setItem(std::shared_ptr< Item > value) { item = value; }
+    ItemPtr getItem() const noexcept { return item; }
+    void setItem(ItemPtr value) { item = value; }
 
     const std::string &getRepoid() const noexcept { return repoid; }
     void setRepoid(const std::string &value) { repoid = value; }
@@ -54,7 +54,7 @@ public:
     void setAction(TransactionItemAction value) { action = value; }
 
 protected:
-    std::shared_ptr< Item > item;
+    ItemPtr item;
     std::string repoid;
     TransactionItemAction action = TransactionItemAction::INSTALL;
 };
@@ -93,7 +93,9 @@ protected:
     typedef std::unordered_map< std::string, ItemPair > ItemPairMap;
 
     void mergeItem(ItemPairMap &itemPairMap, MergedTransactionItemPtr transItem);
-    ItemPair resolveRPMDifference(MergedTransactionItemPtr first, MergedTransactionItemPtr second);
+    void resolveRPMDifference(ItemPair &previousItemPair, MergedTransactionItemPtr mTransItem);
+    void resolveErase(ItemPair &previousItemPair, MergedTransactionItemPtr mTransItem);
+    void resolveAltered(ItemPair &previousItemPair, MergedTransactionItemPtr mTransItem);
 };
 
 #endif // LIBDNF_SWDB_TRANSACTION_HPP
